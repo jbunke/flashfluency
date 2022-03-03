@@ -1,0 +1,1 @@
+"(root)"->["de"->["vokale im deutschen"],"pt"->["verb_conj"->["irregular"->["ser","por","estar","conhecer","fazer","ir","vir","example"->[]],"regular"->[]],"vocab"->["books"->["harry potter"->["3 e o prisoneiro de azkaban"->["chapter 1"]]]]],"es"->["ejemplo"]]

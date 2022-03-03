@@ -1,0 +1,10 @@
+setup:true
+root:C:\Users\jorda\OneDrive\Documents\flash fluency
+username:Jordan
+
+daily_introduction_limit:40
+lesson_counter_new:3
+lesson_counter_review:2
+fast_answer_threshold:5
+
+"(root)"->["pt"->["verb_conj"->["irregular"->["por","conhecer","fazer"],"regular"->[]]],"de"->["vokale im deutschen"]]
