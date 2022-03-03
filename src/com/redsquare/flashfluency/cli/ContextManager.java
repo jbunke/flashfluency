@@ -8,7 +8,6 @@ import com.redsquare.flashfluency.system.exceptions.FFErrorMessages;
 import com.redsquare.flashfluency.system.exceptions.FlashFluencyLogicException;
 import com.redsquare.flashfluency.system.exceptions.InvalidDirectoryFormatException;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class ContextManager {
@@ -23,7 +22,7 @@ public class ContextManager {
 
     public static void quit() {
         try {
-            Settings.saveSettings();
+            Settings.save();
         } catch (IOException e) {
             ExceptionMessenger.deliver(
                     FFErrorMessages.MESSAGE_FAILED_TO_WRITE_TO_SETTINGS, false,
@@ -44,10 +43,9 @@ public class ContextManager {
     private static void startUp() {
         try {
             Settings.loadSettings();
+            Settings.loadDirectory();
             initializeContext();
             commandLoop();
-        } catch (FileNotFoundException e) {
-            ExceptionMessenger.deliver(FFErrorMessages.MESSAGE_FAILED_TO_READ_FROM_SETTINGS, true);
         } catch (InvalidDirectoryFormatException e) {
             ExceptionMessenger.deliver(e);
         }

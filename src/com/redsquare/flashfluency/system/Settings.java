@@ -1,12 +1,18 @@
 package com.redsquare.flashfluency.system;
 
+import com.redsquare.flashfluency.cli.CLIInput;
 import com.redsquare.flashfluency.cli.CLIOutput;
 import com.redsquare.flashfluency.cli.ExceptionMessenger;
+import com.redsquare.flashfluency.system.exceptions.FFErrorMessages;
 import com.redsquare.flashfluency.system.exceptions.FlashFluencyLogicException;
 import com.redsquare.flashfluency.system.exceptions.InvalidDirectoryFormatException;
 
 import java.io.*;
-import java.util.Scanner;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 
 public class Settings {
     public static final String ROOT_CODE = "(root)";
@@ -14,9 +20,12 @@ public class Settings {
     public static final String SETTING_SEPARATOR = ":", NEW_LINE = "\n";
 
     // resource file locations
-    private static final String SETTINGS_FILEPATH = "res\\settings\\settings.txt";
-    private static final String DIRECTORY_MIRROR_FILEPATH =
-            "res\\settings\\directory_mirror.txt";
+    // private static final String SETTINGS_FILEPATH = "resources/settings/settings.txt";
+    private static final String RESOURCES_FP = "resources";
+    private static final String SETTINGS_FP = "settings";
+    private static final String SETTINGS_FILENAME = "settings.txt";
+    // private static final String DIRECTORY_MIRROR_FILEPATH = "resources/settings/directory_mirror.txt";
+    private static final String DIRECTORY_MIRROR_FILENAME = "directory_mirror.txt";
 
     // indices
     private static final int LESSON_INTRO_LIMIT = 0,
@@ -83,13 +92,15 @@ public class Settings {
         return FLAGS[IGNORE_BRACKETED];
     }
 
-    public static void saveSettings() throws IOException {
+    public static void save() throws IOException {
         writeToSettingsFile();
         writeToDirectoryMirrorFile();
     }
 
     private static void writeToDirectoryMirrorFile() throws IOException {
-        BufferedWriter bw = new BufferedWriter(new FileWriter(DIRECTORY_MIRROR_FILEPATH));
+        Path path = FileSystems.getDefault().getPath(RESOURCES_FP, SETTINGS_FP, DIRECTORY_MIRROR_FILENAME);
+        // BufferedWriter bw = new BufferedWriter(new FileWriter(DIRECTORY_MIRROR_FILEPATH));
+        BufferedWriter bw = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
 
         bw.write(rootDirectory.encode());
         bw.newLine();
@@ -97,7 +108,9 @@ public class Settings {
     }
 
     private static void writeToSettingsFile() throws IOException {
-        BufferedWriter bw = new BufferedWriter(new FileWriter(SETTINGS_FILEPATH));
+        Path path = FileSystems.getDefault().getPath(RESOURCES_FP, SETTINGS_FP, SETTINGS_FILENAME);
+        // BufferedWriter bw = new BufferedWriter(new FileWriter(SETTINGS_FILEPATH));
+        BufferedWriter bw = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
 
         bw.write(KEYWORD_SETUP + SETTING_SEPARATOR + setUp + NEW_LINE);
         bw.write(KEYWORD_ROOT + SETTING_SEPARATOR + rootFilepath + NEW_LINE);
@@ -116,17 +129,13 @@ public class Settings {
     }
 
     private static void setup() {
-        Scanner sc = new Scanner(System.in);
-
-        // TODO - prompt for root directory
-        System.out.println("Root directory:"); // temp
-        rootFilepath = sc.nextLine();
+        CLIOutput.writeSetRootDirectoryPrompt();
+        rootFilepath = CLIInput.readInput();
 
         rootDirectory = FFDirectory.createRoot();
 
-        // TODO - prompt for username
-        System.out.println("Username:"); // temp
-        username = sc.nextLine();
+        CLIOutput.writeSetUsernamePrompt();
+        username = CLIInput.readInput();
 
         setTechnicalSettingsToDefaults();
         setFlagsToDefaults();
@@ -166,11 +175,59 @@ public class Settings {
         return l.substring((k + SETTING_SEPARATOR).length()).trim();
     }
 
-    public static void loadSettings() throws FileNotFoundException, InvalidDirectoryFormatException {
-        BufferedReader br = new BufferedReader(
-                new FileReader(SETTINGS_FILEPATH));
+    public static void loadSettings() throws InvalidDirectoryFormatException {
+        Path path = FileSystems.getDefault().getPath(RESOURCES_FP, SETTINGS_FP, SETTINGS_FILENAME);
+        // File settingsFile = new File(SETTINGS_FILEPATH);
 
-        for (String line : br.lines().toList()) {
+        try {
+            if (path.toFile().exists()) {
+                BufferedReader br = Files.newBufferedReader(path, StandardCharsets.UTF_8);
+                populateSettings(br.lines().toList());
+            } else {
+                setup();
+                // if (path.toFile().createNewFile())
+                writeToSettingsFile();
+            }
+        } catch (FileNotFoundException e) {
+            ExceptionMessenger.deliver(FFErrorMessages.MESSAGE_FAILED_TO_READ_FROM_SETTINGS,
+                    false, FFErrorMessages.CONSEQUENCE_COULD_NOT_SAVE);
+        } catch (IOException e) {
+            ExceptionMessenger.deliver(FFErrorMessages.MESSAGE_FAILED_TO_WRITE_TO_SETTINGS,
+                    false, FFErrorMessages.CONSEQUENCE_COULD_NOT_SAVE);
+        }
+    }
+
+    public static void loadDirectory() {
+        Path path = FileSystems.getDefault().getPath(RESOURCES_FP, SETTINGS_FP, DIRECTORY_MIRROR_FILENAME);
+        // File directoryMirrorFile = new File(DIRECTORY_MIRROR_FILEPATH);
+
+        try {
+            if (setUp && !rootFilepath.equals("") && path.toFile().exists()) {
+                // BufferedReader directoryBR = new BufferedReader(new FileReader(directoryMirrorFile));
+                BufferedReader directoryBR = Files.newBufferedReader(path, StandardCharsets.UTF_8);
+
+                StringBuilder sb = new StringBuilder();
+                directoryBR.lines().forEach(sb::append);
+
+                parseDirectoryMirror(sb.toString());
+            } else {
+                if (!setUp)
+                    setup();
+
+                // if (!path.toFile().exists() && path.toFile().createNewFile())
+                writeToDirectoryMirrorFile();
+            }
+        } catch (FileNotFoundException e) {
+            ExceptionMessenger.deliver(FFErrorMessages.MESSAGE_FAILED_TO_READ_FROM_DIR_MIRROR,
+                    false, FFErrorMessages.CONSEQUENCE_COULD_NOT_SAVE);
+        } catch (IOException e) {
+            ExceptionMessenger.deliver(FFErrorMessages.MESSAGE_FAILED_TO_WRITE_TO_DIR_MIRROR,
+                    false, FFErrorMessages.CONSEQUENCE_COULD_NOT_SAVE);
+        }
+    }
+
+    private static void populateSettings(final List<String> lines) {
+        for (String line : lines) {
             String l = line.trim();
 
             if (l.startsWith(KEYWORD_SETUP))
@@ -185,19 +242,14 @@ public class Settings {
             extractTechnicalSettings(l);
             extractFlags(l);
         }
+    }
 
-        if (setUp && !rootFilepath.equals("")) {
-            BufferedReader directoryBR = new BufferedReader(
-                    new FileReader(DIRECTORY_MIRROR_FILEPATH));
-
-            StringBuilder sb = new StringBuilder();
-            directoryBR.lines().forEach(sb::append);
-
+    private static void parseDirectoryMirror(final String line) {
+        try {
             rootDirectory = FFDirectory.createRoot();
-
-            DirectoryParser.parse(sb.toString(), rootDirectory);
-        } else {
-            setup();
+            DirectoryParser.parse(line, rootDirectory);
+        } catch (InvalidDirectoryFormatException e) {
+            ExceptionMessenger.deliver(e);
         }
     }
 

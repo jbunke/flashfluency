@@ -107,7 +107,7 @@ public class DeckFileParser {
 
     public static void savetoFile(String filepath, String description,
                                   Set<String> tags, Map<String, FlashCard> flashCards) throws IOException {
-        String dir = filepath.substring(0, filepath.lastIndexOf('\\'));
+        String dir = filepath.substring(0, filepath.lastIndexOf('/'));
         File dirLocation = new File(dir);
 
         if (!dirLocation.exists() && !dirLocation.mkdirs())

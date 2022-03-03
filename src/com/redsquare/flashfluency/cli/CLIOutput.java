@@ -364,4 +364,14 @@ public class CLIOutput {
 
         write(s, true);
     }
+
+    public static void writeSetRootDirectoryPrompt() {
+        String s = ANSI_BLUE_BOLD + "Set root directory: ";
+        write(s, false);
+    }
+
+    public static void writeSetUsernamePrompt() {
+        String s = ANSI_BLUE_BOLD + "Set username: ";
+        write(s, false);
+    }
 }
