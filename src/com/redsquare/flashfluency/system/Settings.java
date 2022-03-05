@@ -21,6 +21,7 @@ public class Settings {
 
     // resource file locations
     // private static final String SETTINGS_FILEPATH = "resources/settings/settings.txt";
+    private static final String THIS_DIR_FP = ".";
     private static final String RESOURCES_FP = "resources";
     private static final String SETTINGS_FP = "settings";
     private static final String SETTINGS_FILENAME = "settings.txt";
@@ -80,7 +81,7 @@ public class Settings {
         return TECHNICAL_SETTINGS[LESSON_COUNTER_REVIEW];
     }
 
-    public static boolean isMarkForAccents() {
+    public static boolean isMarkingForAccents() {
         return FLAGS[MARK_FOR_ACCENTS];
     }
 
@@ -88,7 +89,7 @@ public class Settings {
         return FLAGS[OPTION_TO_MARK_MISMATCH_AS_CORRECT];
     }
 
-    public static boolean isIgnoreBracketed() {
+    public static boolean isIgnoringBracketed() {
         return FLAGS[IGNORE_BRACKETED];
     }
 
@@ -98,7 +99,8 @@ public class Settings {
     }
 
     private static void writeToDirectoryMirrorFile() throws IOException {
-        Path path = FileSystems.getDefault().getPath(RESOURCES_FP, SETTINGS_FP, DIRECTORY_MIRROR_FILENAME);
+        Path path = FileSystems.getDefault().getPath(THIS_DIR_FP,
+                RESOURCES_FP, SETTINGS_FP, DIRECTORY_MIRROR_FILENAME);
         // BufferedWriter bw = new BufferedWriter(new FileWriter(DIRECTORY_MIRROR_FILEPATH));
         BufferedWriter bw = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
 
@@ -108,7 +110,8 @@ public class Settings {
     }
 
     private static void writeToSettingsFile() throws IOException {
-        Path path = FileSystems.getDefault().getPath(RESOURCES_FP, SETTINGS_FP, SETTINGS_FILENAME);
+        Path path = FileSystems.getDefault().getPath(THIS_DIR_FP,
+                RESOURCES_FP, SETTINGS_FP, SETTINGS_FILENAME);
         // BufferedWriter bw = new BufferedWriter(new FileWriter(SETTINGS_FILEPATH));
         BufferedWriter bw = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
 
@@ -176,7 +179,8 @@ public class Settings {
     }
 
     public static void loadSettings() throws InvalidDirectoryFormatException {
-        Path path = FileSystems.getDefault().getPath(RESOURCES_FP, SETTINGS_FP, SETTINGS_FILENAME);
+        Path path = FileSystems.getDefault().getPath(THIS_DIR_FP,
+                RESOURCES_FP, SETTINGS_FP, SETTINGS_FILENAME);
         // File settingsFile = new File(SETTINGS_FILEPATH);
 
         try {
@@ -198,7 +202,8 @@ public class Settings {
     }
 
     public static void loadDirectory() {
-        Path path = FileSystems.getDefault().getPath(RESOURCES_FP, SETTINGS_FP, DIRECTORY_MIRROR_FILENAME);
+        Path path = FileSystems.getDefault().getPath(THIS_DIR_FP,
+                RESOURCES_FP, SETTINGS_FP, DIRECTORY_MIRROR_FILENAME);
         // File directoryMirrorFile = new File(DIRECTORY_MIRROR_FILEPATH);
 
         try {

@@ -1,9 +1,6 @@
 package com.redsquare.flashfluency.cli;
 
-import com.redsquare.flashfluency.logic.Deck;
-import com.redsquare.flashfluency.logic.FlashCard;
-import com.redsquare.flashfluency.logic.Lesson;
-import com.redsquare.flashfluency.logic.Question;
+import com.redsquare.flashfluency.logic.*;
 import com.redsquare.flashfluency.system.FFDirectory;
 import com.redsquare.flashfluency.system.FFFile;
 import com.redsquare.flashfluency.system.Settings;
@@ -27,16 +24,6 @@ public class CLIOutput {
 
     private static final String ANSI_RESET = "\033[0m";
 
-    // Regular Colors
-    // private static final String ANSI_BLACK = "\033[0;30m";   // BLACK
-    private static final String ANSI_RED = "\033[0;31m";     // RED
-    private static final String ANSI_GREEN = "\033[0;32m";   // GREEN
-    private static final String ANSI_YELLOW = "\033[0;33m";  // YELLOW
-    private static final String ANSI_BLUE = "\033[0;34m";    // BLUE
-    private static final String ANSI_PURPLE = "\033[0;35m";  // PURPLE
-    private static final String ANSI_CYAN = "\033[0;36m";    // CYAN
-    // private static final String ANSI_WHITE = "\033[0;37m";   // WHITE
-
     // Bold
     // private static final String ANSI_BLACK_BOLD = "\033[1;30m";  // BLACK
     private static final String ANSI_RED_BOLD = "\033[1;31m";    // RED
@@ -53,9 +40,9 @@ public class CLIOutput {
 
     public static void writeError(final String message,
                                   final boolean fatal, final String consequence) {
-        String sb = borderLine() +
-                (fatal ? (ANSI_RED_BOLD + "[ FATAL ") : (ANSI_RED + "[ ")) +
-                "ERROR ]" + NEW_LINE + message + NEW_LINE + " -> " + consequence +
+        String sb = borderLine() + ANSI_RED_BOLD +
+                (fatal ? "[ FATAL " : "[ ") +
+                "ERROR ]" + NEW_LINE + message + NEW_LINE + "so... " + consequence +
                 NEW_LINE + ANSI_RESET + borderLine();
 
         write(sb, false);
@@ -63,6 +50,16 @@ public class CLIOutput {
 
     private static String borderLine() {
         return BORDER_TICK.repeat(BORDER_TICK_NUM) + NEW_LINE;
+    }
+
+    private static String potColor(Pot pot) {
+        return switch (pot) {
+            case A -> ANSI_CYAN_BOLD;
+            case B -> ANSI_GREEN_BOLD;
+            case C, D -> ANSI_YELLOW_BOLD;
+            case NEW -> ANSI_PURPLE_BOLD;
+            case F -> ANSI_RED_BOLD;
+        };
     }
 
     public static void writeDeck(Deck deck) {
@@ -83,7 +80,43 @@ public class CLIOutput {
 
         appendSectionTitle(sb, "Flash Cards:");
 
-        final String[] CATEGORIES = { "Clue", "Answer", "Introduced?", "Due", "Status", "Answers to Promotion" };
+        final int percentage = deck.getPercentageScore();
+        String color;
+
+        if (percentage > 80)
+            color = ANSI_CYAN_BOLD;
+        else if (percentage > 55)
+            color = ANSI_GREEN_BOLD;
+        else if (percentage > 30)
+            color = ANSI_YELLOW_BOLD;
+        else
+            color = ANSI_RED_BOLD;
+
+        sb.append(ANSI_CYAN_BOLD).append(deck.getNumOfFlashCards())
+                .append(ANSI_RESET).append(" total flash cards; ")
+                .append(color).append(deck.getPercentageScore())
+                .append("%").append(ANSI_RESET).append(" memorized");
+        sb.append(NEW_LINE).append("(");
+
+        final Pot[] pots = { Pot.A, Pot.B, Pot.C, Pot.D, Pot.F, Pot.NEW };
+        int processed = 0;
+
+        for (Pot pot : pots) {
+            color = potColor(pot);
+
+            int cardsInPot = deck.getNumFlashCardsInPot(pot);
+
+            if (processed > 0)
+                sb.append(", ");
+
+            sb.append(cardsInPot).append(" in ").append(color).append(pot).append(ANSI_RESET);
+            processed++;
+        }
+
+        sb.append(")").append(NEW_LINE.repeat(2));
+
+        final String[] CATEGORIES = { "Clue", "Answer", "Introduced?", "Due",
+                "Status", "Answers to Promotion" };
         final List<Function<FlashCard, String>> FUNCTIONS = List.of(
                 FlashCard::getClue, FlashCard::getAnswer, x -> x.isIntroduced() ? "Yes" : "No",
                 x -> {
@@ -91,13 +124,7 @@ public class CLIOutput {
 
                     return d.getDayOfMonth() + "-" + d.getMonthValue() + "-" + d.getYear();
                 },
-                x -> switch (x.getPot()) {
-                    case A -> ANSI_CYAN_BOLD;
-                    case B -> ANSI_GREEN_BOLD;
-                    case C, D -> ANSI_YELLOW_BOLD;
-                    case NEW -> ANSI_PURPLE_BOLD;
-                    case F -> ANSI_RED_BOLD;
-                } + x.getPot() + ANSI_RESET,
+                x -> potColor(x.getPot()) + x.getPot() + ANSI_RESET,
                 x -> String.valueOf(x.getPotCounter())
         );
         final int CAT_COUNT = 6;
@@ -372,6 +399,15 @@ public class CLIOutput {
 
     public static void writeSetUsernamePrompt() {
         String s = ANSI_BLUE_BOLD + "Set username: ";
+        write(s, false);
+    }
+
+    public static void writeWelcomeMessage() {
+        String s = borderLine() + ANSI_BLUE_BOLD + "Welcome to Flash Fluency!" + NEW_LINE +
+                "Flash Fluency is a flash card spaced repetition memorization program." + NEW_LINE +
+                "Jordan Bunke (2022)" + NEW_LINE +
+                "Type \"" + ANSI_YELLOW_BOLD + "help" + ANSI_BLUE_BOLD + "\" to get started." +
+                NEW_LINE + ANSI_RESET + borderLine();
         write(s, false);
     }
 }

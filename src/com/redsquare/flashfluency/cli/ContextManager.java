@@ -42,6 +42,7 @@ public class ContextManager {
 
     private static void startUp() {
         try {
+            CLIOutput.writeWelcomeMessage();
             Settings.loadSettings();
             Settings.loadDirectory();
             initializeContext();
@@ -56,7 +57,7 @@ public class ContextManager {
         inLesson = false;
     }
 
-    private static void setContextToRoot() {
+    public static void setContextToRoot() {
         context = Settings.getRootDirectory();
     }
 

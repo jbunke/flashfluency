@@ -3,6 +3,8 @@ package com.redsquare.flashfluency.logic;
 public enum Pot {
     F, NEW, D, C, B, A;
 
+    public static final int MAX_SCORE = 6;
+
     public int answersForPromotion() {
         return switch (this) {
             case A -> -1;
@@ -39,6 +41,16 @@ public enum Pot {
             case C -> 4L;
             case B -> 8L;
             case A -> 16L;
+        };
+    }
+
+    public int getScore() {
+        return switch (this) {
+            case F, NEW -> 0;
+            case D -> MAX_SCORE - 3;
+            case C -> MAX_SCORE - 2;
+            case B -> MAX_SCORE - 1;
+            case A -> MAX_SCORE;
         };
     }
 }

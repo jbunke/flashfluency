@@ -1,5 +1,7 @@
 package com.redsquare.flashfluency.system;
 
+import java.io.File;
+
 public abstract class FFFile {
     private final String name;
     private final FFDirectory parent;
@@ -21,7 +23,7 @@ public abstract class FFFile {
         if (name.equals(Settings.ROOT_CODE))
             return Settings.getRootFilepath();
         else
-            return parent.getFilepath() + "/" +
+            return parent.getFilepath() + File.separator +
                     name + getFileExtension();
     }
 

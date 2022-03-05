@@ -48,7 +48,7 @@ public class Deck {
     public void setDescription(String description) {
         this.description = description;
     }
-    
+
     public void saveToFile() throws IOException {
         DeckFileParser.savetoFile(filepath, description, tags, flashCards);
     }
@@ -95,8 +95,23 @@ public class Deck {
         return subset(notIntroduced, Settings.getLessonIntroLimit() - alreadyInLesson.size());
     }
 
+    public int getPercentageScore() {
+        int total = 0;
+
+        for (String clue : getFlashCardClues()) {
+            FlashCard fc = getFlashCard(clue);
+            total += fc.getPot().getScore();
+        }
+
+        return (int)((total * 100) / (float)(getNumOfFlashCards() * Pot.MAX_SCORE));
+    }
+
     public int getNumOfFlashCards() {
         return flashCards.keySet().size();
+    }
+
+    public int getNumFlashCardsInPot(final Pot pot) {
+        return filterFlashCards(x -> x.getPot() == pot).size();
     }
 
     public String getName() {
@@ -127,6 +142,10 @@ public class Deck {
     }
 
     public void importCards(String filepath) {
+        System.out.println(File.separator);
+
+        filepath = filepath.replace("/", File.separator).replace("\\", File.separator);
+
         try {
             BufferedReader br = new BufferedReader(new FileReader(filepath));
 

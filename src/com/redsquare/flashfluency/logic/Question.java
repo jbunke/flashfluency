@@ -30,13 +30,11 @@ public class Question {
     public void answer(final String response, final boolean SR) {
         final String correctAnswer = flashCard.getAnswer();
 
-        if (response.equals(correctAnswer) ||
-                (Settings.isIgnoreBracketed() &&
-                        MarkerHelper.correctIgnoringBracketedTerms(correctAnswer, response))) {
+        if (MarkerHelper.isCorrectMarkingForAccents(correctAnswer, response)) {
             CLIOutput.writeCorrectAnswer();
             mark(true, SR);
-        } else if (!Settings.isMarkForAccents() &&
-                MarkerHelper.correctIgnoringAccents(correctAnswer, response)) {
+        } else if (!Settings.isMarkingForAccents() &&
+                MarkerHelper.isCorrectNotMarkingForAccents(correctAnswer, response)) {
             CLIOutput.writeCorrectAnswerAccentDiscrepancy(correctAnswer);
             mark(true, SR);
         } else if (Settings.isOptionForMarkingMismatchAsCorrect()) {
@@ -50,7 +48,7 @@ public class Question {
 
     private void mark(final boolean correct, final boolean SR) {
         try {
-            if (answered)
+            if (isAnswered())
                 throw FlashFluencyLogicException.questionHasAlreadyBeenAnswered();
 
             this.answered = true;
@@ -67,7 +65,7 @@ public class Question {
         return flashCard;
     }
 
-    public boolean isAnswered() {
+    private boolean isAnswered() {
         return answered;
     }
 

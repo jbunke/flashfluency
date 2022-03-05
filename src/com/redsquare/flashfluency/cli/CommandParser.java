@@ -35,6 +35,7 @@ public class CommandParser {
     private static final String CMD_QUIT = "quit"; // DONE
 
     private static final String PARENT_DIR = "..";
+    private static final String ROOT_DIR = "";
     private static final String ALL = "all";
     private static final String SUBSET = "subset" + ARG_SEPARATOR;
     private static final String TAG = "tag" + ARG_SEPARATOR;
@@ -196,6 +197,8 @@ public class CommandParser {
         for (String r : rs) {
             if (r.equals(PARENT_DIR))
                 ContextManager.setContextToParent();
+            else if (r.equals(ROOT_DIR))
+                ContextManager.setContextToRoot();
             else
                 ContextManager.setContextToChild(r);
         }

@@ -1,6 +1,12 @@
 package com.redsquare.flashfluency.logic;
 
+import com.redsquare.flashfluency.system.Settings;
+
+import java.util.function.BiFunction;
+
 public class MarkerHelper {
+    private static final String TERM_SEPARATOR = "\\|";
+
     private static char baseGlyph(final char toConvert) {
         return switch (toConvert) {
             case 'ã', 'á', 'â', 'à', 'ä', 'a' -> 'a';
@@ -30,6 +36,14 @@ public class MarkerHelper {
         return sb.toString();
     }
 
+    private static String[] separateAnswerTerms(final String correctAnswer) {
+        return correctAnswer.split(TERM_SEPARATOR);
+    }
+
+    private static String removeBrackets(final String toConvert) {
+        return toConvert.replace("(", "").replace(")","").trim();
+    }
+
     private static String removeBracketedTerms(final String toConvert) {
         String s = toConvert.trim();
 
@@ -46,12 +60,45 @@ public class MarkerHelper {
         return s.trim();
     }
 
-    public static boolean correctIgnoringAccents(final String correctAnswer,
+    private static boolean equal(final String correctAnswer, final String response) {
+        return correctAnswer.equals(response) ||
+                removeBrackets(correctAnswer).equals(removeBrackets(response));
+    }
+
+    private static boolean equalIgnoringAccents(final String correctAnswer,
                                                  final String response) {
         return convertToUnaccented(correctAnswer).equals(convertToUnaccented(response));
     }
 
-    public static boolean correctIgnoringBracketedTerms(final String correctAnswer, final String response) {
+    private static boolean equalIgnoringBracketedTerms(final String correctAnswer,
+                                                       final String response) {
         return removeBracketedTerms(correctAnswer).equals(response);
+    }
+
+    private static boolean isCorrect(final String correctAnswer, final String response,
+                                     final BiFunction<String, String, Boolean> f) {
+        String[] correctTerms = separateAnswerTerms(correctAnswer);
+        boolean isCorrect = f.apply(correctAnswer, response);
+
+        if (Settings.isIgnoringBracketed())
+            isCorrect |= equalIgnoringBracketedTerms(correctAnswer, response);
+
+        for (String correctTerm : correctTerms) {
+            correctTerm = correctTerm.trim();
+            isCorrect |= f.apply(correctTerm, response);
+
+            if (Settings.isIgnoringBracketed())
+                isCorrect |= equalIgnoringBracketedTerms(correctTerm, response);
+        }
+
+        return isCorrect;
+    }
+
+    public static boolean isCorrectMarkingForAccents(final String correctAnswer, final String response) {
+        return isCorrect(correctAnswer, response, MarkerHelper::equal);
+    }
+
+    public static boolean isCorrectNotMarkingForAccents(final String correctAnswer, final String response) {
+        return isCorrect(correctAnswer, response, MarkerHelper::equalIgnoringAccents);
     }
 }
