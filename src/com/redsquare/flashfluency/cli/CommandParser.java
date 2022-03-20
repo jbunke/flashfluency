@@ -33,6 +33,7 @@ public class CommandParser {
     private static final String CMD_LIST = "list"; // DONE
     private static final String CMD_VIEW = "view"; // DONE
     private static final String CMD_QUIT = "quit"; // DONE
+    private static final String CMD_DUE = "due"; // DONE
 
     private static final String PARENT_DIR = "..";
     private static final String ROOT_DIR = "";
@@ -70,6 +71,8 @@ public class CommandParser {
             parseEditCommand();
         else if (command.startsWith(CMD_SETTINGS))
             Settings.printSettings();
+        else if (command.startsWith(CMD_DUE))
+            parseDirectoryCommand(CLIOutput::writeDecksWithDueCards);
         else if (command.startsWith(CMD_GOTO + ARG_SEPARATOR))
             parseGotoCommand(getRemaining(command, CMD_GOTO + ARG_SEPARATOR));
         else if (command.startsWith(CMD_TEST + ARG_SEPARATOR))
@@ -256,6 +259,7 @@ public class CommandParser {
                 CMD_CREATE + ARG_SEPARATOR + DECK + NAME,
                 CMD_LIST,
                 CMD_QUIT,
+                CMD_DUE,
                 CMD_HELP
         };
         final String[] DIR_EXPLANATIONS = {
@@ -268,6 +272,8 @@ public class CommandParser {
                 "Creates a flash card deck file " + NAME + " in the current directory", // create deck [name]
                 "Lists the contents of the current directory", // list
                 "Saves and quits the program", // quit
+                "Finds all of the decks accessible via this context " +
+                        "with flash cards that are due", // due
                 "Displays the valid commands at this context scope" // help
         };
 

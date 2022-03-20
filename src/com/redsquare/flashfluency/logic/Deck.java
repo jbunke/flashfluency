@@ -114,6 +114,10 @@ public class Deck {
         return filterFlashCards(x -> x.getPot() == pot).size();
     }
 
+    public int getNumDueFlashCards() {
+        return filterFlashCards(FlashCard::isDue).size();
+    }
+
     public String getName() {
         return name;
     }

@@ -5,6 +5,7 @@ import com.redsquare.flashfluency.logic.Deck;
 import com.redsquare.flashfluency.system.exceptions.FFErrorMessages;
 
 import java.io.IOException;
+import java.util.Set;
 
 public class FFDeckFile extends FFFile {
     private Deck associatedDeck;
@@ -25,6 +26,12 @@ public class FFDeckFile extends FFFile {
         if (associatedDeck == null)
             setAssociatedDeck(Deck.createNew(getName(), getFilepath()));
         return associatedDeck;
+    }
+
+    @Override
+    public void getDecksWithDue(Set<FFDeckFile> hasDue) {
+        if (associatedDeck.getNumDueFlashCards() > 0)
+            hasDue.add(this);
     }
 
     @Override

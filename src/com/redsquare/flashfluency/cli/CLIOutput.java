@@ -1,14 +1,13 @@
 package com.redsquare.flashfluency.cli;
 
 import com.redsquare.flashfluency.logic.*;
+import com.redsquare.flashfluency.system.FFDeckFile;
 import com.redsquare.flashfluency.system.FFDirectory;
 import com.redsquare.flashfluency.system.FFFile;
 import com.redsquare.flashfluency.system.Settings;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.OptionalInt;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -21,6 +20,7 @@ public class CLIOutput {
 
     private static final int UNDERLINE_NUM = 20;
     private static final String UNDERLINE = "-";
+    private static final String DIR_SEPARATOR = "/";
 
     private static final String ANSI_RESET = "\033[0m";
 
@@ -80,22 +80,14 @@ public class CLIOutput {
 
         appendSectionTitle(sb, "Flash Cards:");
 
-        final int percentage = deck.getPercentageScore();
-        String color;
-
-        if (percentage > 80)
-            color = ANSI_CYAN_BOLD;
-        else if (percentage > 55)
-            color = ANSI_GREEN_BOLD;
-        else if (percentage > 30)
-            color = ANSI_YELLOW_BOLD;
-        else
-            color = ANSI_RED_BOLD;
+        String color = deckPercentageScoreColor(deck);
 
         sb.append(ANSI_CYAN_BOLD).append(deck.getNumOfFlashCards())
                 .append(ANSI_RESET).append(" total flash cards; ")
+                .append(ANSI_PURPLE_BOLD).append(deck.getNumDueFlashCards())
+                .append(ANSI_RESET).append(" due; ")
                 .append(color).append(deck.getPercentageScore())
-                .append("%").append(ANSI_RESET).append(" memorized");
+                .append(ANSI_RESET).append("% memorized");
         sb.append(NEW_LINE).append("(");
 
         final Pot[] pots = { Pot.A, Pot.B, Pot.C, Pot.D, Pot.F, Pot.NEW };
@@ -177,22 +169,88 @@ public class CLIOutput {
                 append(UNDERLINE.repeat(UNDERLINE_NUM)).append(NEW_LINE.repeat(2));
     }
 
+    public static void writeDecksWithDueCards(FFDirectory directory) {
+        Set<FFDeckFile> hasDue = new HashSet<>();
+        directory.getDecksWithDue(hasDue);
+
+        List<FFDeckFile> decksWithDueCards = new ArrayList<>(hasDue);
+        decksWithDueCards.sort(Comparator.comparingInt(o -> -o.getAssociatedDeck().getNumDueFlashCards()));
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Decks with due flash cards in directory \"")
+                .append(directory.getName()).append("\":").append(NEW_LINE);
+
+        decksWithDueCards.forEach(x ->
+                sb.append(ANSI_RESET).append(" -> ")
+                .append(relativePath(directory, x))
+                .append(deckInLine(x.getAssociatedDeck()))
+                .append(NEW_LINE));
+
+        write(sb.toString(), false);
+    }
+
+    private static String relativePath(FFDirectory from, FFFile to) {
+        StringBuilder sb = new StringBuilder();
+
+        FFDirectory context = to.getParent();
+
+        while (!context.equals(from)) {
+            sb.insert(0, DIR_SEPARATOR);
+            sb.insert(0, context.getName());
+
+            context = context.getParent();
+        }
+
+        sb.insert(0, ANSI_BLUE_BOLD);
+        sb.append(ANSI_RESET);
+        return sb.toString();
+    }
+
     public static void writeDirectoryList(FFDirectory directory) {
         List<String> childrenNames = directory.getChildrenNames().stream().toList();
 
         StringBuilder sb = new StringBuilder();
-
         sb.append("Contents of directory \"").append(directory.getName()).append("\":").append(NEW_LINE);
 
         childrenNames.forEach(x -> {
             sb.append(ANSI_RESET).append(" -> ");
 
             FFFile child = directory.getChild(x);
-            sb.append((child instanceof FFDirectory) ? ANSI_BLUE_BOLD : ANSI_PURPLE_BOLD);
-            sb.append(x).append(NEW_LINE);
+
+            if (child instanceof FFDirectory)
+                sb.append(ANSI_BLUE_BOLD).append(x);
+            else
+                sb.append(deckInLine(((FFDeckFile) child).getAssociatedDeck()));
+
+            sb.append(NEW_LINE);
         });
 
         write(sb.toString(), false);
+    }
+
+    private static String deckInLine(Deck deck) {
+        return ANSI_PURPLE_BOLD + deck.getName() +
+                ANSI_RESET + " [ " +
+                ANSI_PURPLE_BOLD + deck.getNumDueFlashCards() +
+                ANSI_RESET + " due, " +
+                deckPercentageScoreColor(deck) + deck.getPercentageScore() +
+                ANSI_RESET + "% memorized ]";
+    }
+
+    private static String deckPercentageScoreColor(Deck deck) {
+        final int percentage = deck.getPercentageScore();
+        String color;
+
+        if (percentage > 80)
+            color = ANSI_CYAN_BOLD;
+        else if (percentage > 55)
+            color = ANSI_GREEN_BOLD;
+        else if (percentage > 30)
+            color = ANSI_YELLOW_BOLD;
+        else
+            color = ANSI_RED_BOLD;
+
+        return color;
     }
 
     public static void writeUsernamePrompt() {

@@ -1,6 +1,7 @@
 package com.redsquare.flashfluency.system;
 
 import java.io.File;
+import java.util.Set;
 
 public abstract class FFFile {
     private final String name;
@@ -33,6 +34,9 @@ public abstract class FFFile {
 
     public String encode() {
         return DirectoryParser.NAME_BOUND + name + DirectoryParser.NAME_BOUND;
+    }
+
+    public void getDecksWithDue(Set<FFDeckFile> hasDue) {
     }
 
     @Override
