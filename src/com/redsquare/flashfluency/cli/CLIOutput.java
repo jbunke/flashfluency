@@ -206,21 +206,29 @@ public class CLIOutput {
         return sb.toString();
     }
 
-    public static void writeDirectoryList(FFDirectory directory) {
-        List<String> childrenNames = directory.getChildrenNames().stream().toList();
+    public static void writeDirectoryList(FFDirectory directory, final String sortingFlag) {
+        final String FLAG_COMPLETION = "-c"; // FLAG_ALPHABETICAL = "-a"
+
+        Comparator<FFFile> sorter = sortingFlag.equals(FLAG_COMPLETION) ?
+                FFFile.COMPLETION_COMPARATOR : FFFile.ALPHABETICAL_COMPARATOR;
+
+        List<FFFile> children = new ArrayList<>();
+        for (String s : directory.getChildrenNames()) {
+            FFFile directoryChild = directory.getChild(s);
+            children.add(directoryChild);
+        }
+        children.sort(sorter);
 
         StringBuilder sb = new StringBuilder();
         sb.append("Contents of directory \"").append(directory.getName()).append("\":").append(NEW_LINE);
 
-        childrenNames.forEach(x -> {
+        children.forEach(x -> {
             sb.append(ANSI_RESET).append(" -> ");
 
-            FFFile child = directory.getChild(x);
-
-            if (child instanceof FFDirectory)
+            if (x instanceof FFDirectory)
                 sb.append(ANSI_BLUE_BOLD).append(x);
             else
-                sb.append(deckInLine(((FFDeckFile) child).getAssociatedDeck()));
+                sb.append(deckInLine(((FFDeckFile) x).getAssociatedDeck()));
 
             sb.append(NEW_LINE);
         });
