@@ -53,10 +53,8 @@ public class FFDirectory extends FFFile {
 
     @Override
     public void getDecksWithDue(Set<FFDeckFile> hasDue) {
-        for (String childName : children.keySet()) {
-            FFFile child = children.get(childName);
-            child.getDecksWithDue(hasDue);
-        }
+        for (String childName : children.keySet())
+            children.get(childName).getDecksWithDue(hasDue);
     }
 
     @Override

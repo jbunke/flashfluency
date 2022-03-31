@@ -177,14 +177,19 @@ public class CLIOutput {
         decksWithDueCards.sort(Comparator.comparingInt(o -> -o.getAssociatedDeck().getNumDueFlashCards()));
 
         StringBuilder sb = new StringBuilder();
+        sb.append(ANSI_RESET).append(borderLine());
         sb.append("Decks with due flash cards in directory \"")
-                .append(directory.getName()).append("\":").append(NEW_LINE);
+                .append(ANSI_BLUE_BOLD).append(directory.getName())
+                .append(ANSI_RESET).append("\":").append(NEW_LINE);
+        sb.append(ANSI_RESET).append(borderLine());
 
         decksWithDueCards.forEach(x ->
                 sb.append(ANSI_RESET).append(" -> ")
                 .append(relativePath(directory, x))
                 .append(deckInLine(x.getAssociatedDeck()))
                 .append(NEW_LINE));
+
+        sb.append(ANSI_RESET).append(borderLine());
 
         write(sb.toString(), false);
     }
@@ -196,21 +201,19 @@ public class CLIOutput {
 
         while (!context.equals(from)) {
             sb.insert(0, DIR_SEPARATOR);
+            sb.insert(0, ANSI_RESET);
             sb.insert(0, context.getName());
+            sb.insert(0, ANSI_BLUE_BOLD);
 
             context = context.getParent();
         }
 
-        sb.insert(0, ANSI_BLUE_BOLD);
         sb.append(ANSI_RESET);
         return sb.toString();
     }
 
     public static void writeDirectoryList(FFDirectory directory, final String sortingFlag) {
-        final String FLAG_COMPLETION = "-c"; // FLAG_ALPHABETICAL = "-a"
-
-        Comparator<FFFile> sorter = sortingFlag.equals(FLAG_COMPLETION) ?
-                FFFile.COMPLETION_COMPARATOR : FFFile.ALPHABETICAL_COMPARATOR;
+        Comparator<FFFile> sorter = FFFile.getComparator(sortingFlag);
 
         List<FFFile> children = new ArrayList<>();
         for (String s : directory.getChildrenNames()) {
@@ -220,18 +223,24 @@ public class CLIOutput {
         children.sort(sorter);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Contents of directory \"").append(directory.getName()).append("\":").append(NEW_LINE);
+        sb.append(ANSI_RESET).append(borderLine());
+        sb.append("Contents of directory \"")
+                .append(ANSI_BLUE_BOLD).append(directory.getName())
+                .append(ANSI_RESET).append("\":").append(NEW_LINE);
+        sb.append(ANSI_RESET).append(borderLine());
 
         children.forEach(x -> {
             sb.append(ANSI_RESET).append(" -> ");
 
             if (x instanceof FFDirectory)
-                sb.append(ANSI_BLUE_BOLD).append(x);
+                sb.append(ANSI_BLUE_BOLD).append(x.getName());
             else
                 sb.append(deckInLine(((FFDeckFile) x).getAssociatedDeck()));
 
             sb.append(NEW_LINE);
         });
+
+        sb.append(ANSI_RESET).append(borderLine());
 
         write(sb.toString(), false);
     }
