@@ -144,7 +144,8 @@ public class CLIOutput {
 
         sb.append(catSB).append(NEW_LINE).append(UNDERLINE.repeat(catSpaceSum)).append(NEW_LINE);
 
-        Set<String> fs = deck.getFlashCardClues();
+        List<String> fs = new ArrayList<>(deck.getFlashCardClues());
+        fs.sort(Comparator.naturalOrder());
 
         for (String f : fs) {
             FlashCard fc = deck.getFlashCard(f);
