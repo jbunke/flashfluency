@@ -335,6 +335,39 @@ public class CLIOutput {
         sb.append(NEW_LINE);
 
         sb.append(ANSI_RESET).append(borderLine());
+
+        List<FlashCard> flashCards = new ArrayList<>();
+        List<Question> questions = lesson.getQuestions();
+
+        for (Question q : questions) {
+            FlashCard f = q.getFlashCard();
+            if (!flashCards.contains(f))
+                flashCards.add(f);
+        }
+
+        for (FlashCard f : flashCards) {
+            sb.append(ANSI_RESET).append(flashCards.indexOf(f) + 1)
+                    .append(". ").append(ANSI_PURPLE_BOLD).append(f.getClue())
+                    .append(ANSI_RESET).append(" -> ").append(ANSI_PURPLE_BOLD)
+                    .append(f.getAnswer()).append(ANSI_RESET).append(" [");
+
+            questions.stream().filter(x -> x.getFlashCard().equals(f)).forEach(x -> {
+                String representation = x.isAnswered() ? " X" : " -";
+                sb.append(x.isCorrect() ? ANSI_GREEN_BOLD : ANSI_RED_BOLD)
+                        .append(representation);
+            });
+
+            sb.append(ANSI_RESET);
+            if (lesson.isSR())
+                sb.append(" ] ... updated status: ")
+                        .append(potColor(f.getPot())).append(f.getPot().name());
+            else
+                sb.append(" ]");
+            sb.append(NEW_LINE);
+        }
+
+        sb.append(ANSI_RESET).append(borderLine());
+
         write(sb.toString(), false);
     }
 

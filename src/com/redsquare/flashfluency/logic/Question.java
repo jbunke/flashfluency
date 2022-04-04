@@ -65,7 +65,7 @@ public class Question {
         return flashCard;
     }
 
-    private boolean isAnswered() {
+    public boolean isAnswered() {
         return answered;
     }
 
