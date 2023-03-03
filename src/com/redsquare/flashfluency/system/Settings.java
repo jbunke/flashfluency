@@ -33,23 +33,23 @@ public class Settings {
             LESSON_COUNTER_NEW = 1, LESSON_COUNTER_REVIEW = 2;
             // FAST_ANSWER_SECONDS_THRESHOLD = 3;
     private static final int MARK_FOR_ACCENTS = 0,
-            OPTION_TO_MARK_MISMATCH_AS_CORRECT = 1, IGNORE_BRACKETED = 2;
+            OPTION_TO_MARK_MISMATCH_AS_CORRECT = 1, IGNORE_BRACKETED = 2, REVERSE_MODE = 3;
 
     // KEYWORDS
     private static final String[] TECHNICAL_KEYWORDS =
             { "lesson_introduction_limit", "lesson_counter_new",
                     "lesson_counter_review" }; // "fast_answer_threshold" };
     private static final String[] FLAGS_KEYWORDS =
-            { "mark_for_accents", "option_to_mark_mismatch_as_correct", "ignore_bracketed" };
+            { "mark_for_accents", "option_to_mark_mismatch_as_correct", "ignore_bracketed", "reverse_mode" };
     private static final String KEYWORD_SETUP = "setup", KEYWORD_ROOT = "root",
             KEYWORD_USERNAME = "username";
 
     // DEFAULTS
     private static final int[] TECHNICAL_SETTINGS_DEFAULTS = { 40, 3, 2 };
-    private static final boolean[] FLAGS_DEFAULTS = { false, true, true };
+    private static final boolean[] FLAGS_DEFAULTS = { false, true, true, false };
 
     private static final int[] TECHNICAL_SETTINGS = new int[3];
-    private static final boolean[] FLAGS = new boolean[3];
+    private static final boolean[] FLAGS = new boolean[4];
 
     // System settings
     private static boolean setUp = false;
@@ -91,6 +91,10 @@ public class Settings {
 
     public static boolean isIgnoringBracketed() {
         return FLAGS[IGNORE_BRACKETED];
+    }
+
+    public static boolean isInReverseMode() {
+        return FLAGS[REVERSE_MODE];
     }
 
     public static void save() throws IOException {
@@ -282,6 +286,9 @@ public class Settings {
         } else if (settingID.equals(FLAGS_KEYWORDS[IGNORE_BRACKETED])) {
             b = Boolean.parseBoolean(value);
             FLAGS[IGNORE_BRACKETED] = b;
+        } else if (settingID.equals(FLAGS_KEYWORDS[REVERSE_MODE])) {
+            b = Boolean.parseBoolean(value);
+            FLAGS[REVERSE_MODE] = b;
 
             // other
         } else if (settingID.equals(KEYWORD_USERNAME)) {

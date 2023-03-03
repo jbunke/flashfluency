@@ -7,4 +7,30 @@ lesson_counter_new:3
 lesson_counter_review:2
 fast_answer_threshold:5
 
-"(root)"->["pt"->["verb_conj"->["irregular"->["por","conhecer","fazer"],"regular"->[]]],"de"->["vokale im deutschen"]]
+"(root)"->[
+    "de"->[
+        "vocab"->[
+            "books"->[],
+            "video"->[]
+        ]
+    ],
+    "pt"->[
+        "verb_conj"->[
+            "irregular"->["ter","ser","estar","ver","saber","dar","fazer","ir","poder","querer","vir"]
+            "regular"->[
+                "ar"->[],
+                "ir"->[],
+                "er"->[]
+            ]
+        ],
+        "vocab"->[
+            "books"->[
+                "harry potter"->[
+                    "3 e o prisoneiro de azkaban"->["chapter 1","chapter 2"]
+                ]
+            ]
+        ]
+    ],
+    "es"->[]
+]
+

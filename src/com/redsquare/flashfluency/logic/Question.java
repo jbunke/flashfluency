@@ -22,13 +22,13 @@ public class Question {
     }
 
     public String ask() {
-        CLIOutput.writeFlashCardClue(flashCard.getClue());
+        CLIOutput.writeFlashCardClue(fetchClue());
         CLIOutput.writeFlashCardAnswerPrompt();
         return CLIInput.readInput();
     }
 
     public void answer(final String response, final boolean SR) {
-        final String correctAnswer = flashCard.getAnswer();
+        final String correctAnswer = fetchAnswer();
 
         if (MarkerHelper.isCorrectMarkingForAccents(correctAnswer, response)) {
             CLIOutput.writeCorrectAnswer();
@@ -44,6 +44,14 @@ public class Question {
             CLIOutput.writeWrongAnswer(correctAnswer);
             mark(false, SR);
         }
+    }
+
+    private String fetchClue() {
+        return Settings.isInReverseMode() ? flashCard.getAnswer() : flashCard.getClue();
+    }
+
+    private String fetchAnswer() {
+        return Settings.isInReverseMode() ? flashCard.getClue() : flashCard.getAnswer();
     }
 
     private void mark(final boolean correct, final boolean SR) {

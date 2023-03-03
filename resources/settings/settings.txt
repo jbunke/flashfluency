@@ -1,5 +1,5 @@
 setup:true
-root:C:\Users\jorda\OneDrive\Documents\flash fluency
+root:C:\Users\Jordan Bunke\Documents\ff\flash fluency
 username:Jordan
 
 lesson_introduction_limit:20
@@ -8,3 +8,4 @@ lesson_counter_review:2
 mark_for_accents:false
 option_to_mark_mismatch_as_correct:true
 ignore_bracketed:true
+reverse_mode:false

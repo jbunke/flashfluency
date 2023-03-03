@@ -286,12 +286,12 @@ public class CLIOutput {
     }
 
     public static void writeFlashCardClue(String clue) {
-        String s = borderLine() + ANSI_PURPLE_BOLD + "[ Clue ] : " + clue;
+        String s = borderLine() + ANSI_PURPLE_BOLD + "[ Clue ] : " + ANSI_CYAN_BOLD + clue;
         write(s, true);
     }
 
     public static void writeFlashCardAnswerPrompt() {
-        String s = ANSI_PURPLE_BOLD + "[ Answer ] : ";
+        String s = ANSI_PURPLE_BOLD + "[ Answer ] : " + ANSI_RESET;
         write(s, false);
     }
 
@@ -323,8 +323,8 @@ public class CLIOutput {
 
     public static void writeLessonReview(Lesson lesson) {
         StringBuilder sb = new StringBuilder();
-        sb.append(borderLine()).append(ANSI_PURPLE_BOLD).append((lesson.isSR()) ? "[ Training" : "[ Test");
-        sb.append(" Finished ]");
+        sb.append(borderLine()).append(ANSI_PURPLE_BOLD).append("[ Finished ");
+        sb.append((lesson.isSR()) ? "Training" : "Test").append(" ]");
 
         int rightAnswers = lesson.getQuestions().stream().
                 filter(Question::isCorrect).collect(Collectors.toSet()).size();
@@ -373,8 +373,8 @@ public class CLIOutput {
 
     public static void writeLessonIntro(Lesson lesson) {
         StringBuilder sb = new StringBuilder();
-        sb.append(borderLine()).append(ANSI_PURPLE_BOLD).append((lesson.isSR()) ? "[ Training" : "[ Test");
-        sb.append(" Begun ]");
+        sb.append(borderLine()).append(ANSI_PURPLE_BOLD).append("[ Started ");
+        sb.append((lesson.isSR()) ? "Training" : "Test").append(" ]");
 
         final int cards = lesson.getQuestions().size();
 
