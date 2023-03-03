@@ -58,8 +58,8 @@ public class FFDirectory extends FFFile {
     }
 
     @Override
-    public String encode() {
-        StringBuilder sb = new StringBuilder(super.encode() +
+    public String encode(final int depthLevel) {
+        StringBuilder sb = new StringBuilder(super.encode(depthLevel) +
                 DirectoryParser.DIR_MARKER + DirectoryParser.SCOPE_OPENER);
 
         Set<String> childrenNames = children.keySet();
@@ -67,11 +67,16 @@ public class FFDirectory extends FFFile {
 
         for (String childName : childrenNames) {
             FFFile child = children.get(childName);
-            sb.append(child.encode());
+            sb.append(child.encode(depthLevel + 1));
             i++;
 
             if (i < childrenNames.size())
                 sb.append(DirectoryParser.SEPARATOR);
+        }
+
+        if (!childrenNames.isEmpty()) {
+            sb.append(DirectoryParser.NEW_LINE);
+            sb.append(DirectoryParser.TAB.repeat(depthLevel));
         }
 
         sb.append(DirectoryParser.SCOPE_CLOSER);
@@ -80,6 +85,6 @@ public class FFDirectory extends FFFile {
 
     @Override
     public String toString() {
-        return encode() + "\n" + getFilepath();
+        return encode(0) + "\n" + getFilepath();
     }
 }

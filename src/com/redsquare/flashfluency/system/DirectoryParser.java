@@ -4,7 +4,8 @@ import com.redsquare.flashfluency.system.exceptions.InvalidDirectoryFormatExcept
 
 public class DirectoryParser {
     public static final String DIR_MARKER = "->", SEPARATOR = ",",
-            SCOPE_OPENER = "[", SCOPE_CLOSER = "]", NAME_BOUND = "\"";
+            SCOPE_OPENER = "[", SCOPE_CLOSER = "]", NAME_BOUND = "\"",
+            NEW_LINE = "\n", TAB = "\t";
 
     public static void parse(final String l, final FFDirectory root) throws InvalidDirectoryFormatException {
         String shouldStartWith = NAME_BOUND + Settings.ROOT_CODE +

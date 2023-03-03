@@ -40,8 +40,10 @@ public abstract class FFFile {
         return "";
     }
 
-    public String encode() {
-        return DirectoryParser.NAME_BOUND + name + DirectoryParser.NAME_BOUND;
+    public String encode(final int depthLevel) {
+        return (depthLevel == 0 ? "" : DirectoryParser.NEW_LINE +
+                DirectoryParser.TAB.repeat(depthLevel)) +
+                DirectoryParser.NAME_BOUND + name + DirectoryParser.NAME_BOUND;
     }
 
     public void getDecksWithDue(Set<FFDeckFile> hasDue) {

@@ -108,7 +108,7 @@ public class Settings {
         // BufferedWriter bw = new BufferedWriter(new FileWriter(DIRECTORY_MIRROR_FILEPATH));
         BufferedWriter bw = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
 
-        bw.write(rootDirectory.encode());
+        bw.write(rootDirectory.encode(0));
         bw.newLine();
         bw.close();
     }
@@ -216,7 +216,7 @@ public class Settings {
                 BufferedReader directoryBR = Files.newBufferedReader(path, StandardCharsets.UTF_8);
 
                 StringBuilder sb = new StringBuilder();
-                directoryBR.lines().forEach(sb::append);
+                directoryBR.lines().forEach(x -> sb.append(x.trim()));
 
                 parseDirectoryMirror(sb.toString());
             } else {

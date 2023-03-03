@@ -40,14 +40,14 @@ public class FFDeckFile extends FFFile {
     }
 
     @Override
-    public String encode() {
+    public String encode(final int depthLevel) {
         try {
             getAssociatedDeck().saveToFile();
         } catch (IOException e) {
             ExceptionMessenger.deliver(FFErrorMessages.MESSAGE_FAILED_WRITE_TO_DECK_FILE,
                     false, FFErrorMessages.CONSEQUENCE_DECK_DATA_NOT_SAVED);
         }
-        return super.encode();
+        return super.encode(depthLevel);
     }
 
     @Override

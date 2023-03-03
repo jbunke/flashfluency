@@ -26,6 +26,6 @@ public class DirectoryTests {
         d.addChildDirectoryR("en").addChildDirectoryR("vocab").addDeck("phrasal verbs");
         ((FFDirectory) d.getChild("en")).addDeck("countries");
 
-        System.out.println(d.encode());
+        System.out.println(d.encode(0));
     }
 }
