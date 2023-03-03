@@ -107,8 +107,12 @@ public class CLIOutput {
 
         sb.append(")").append(NEW_LINE.repeat(2));
 
+        final int CLUE_INDEX = 0, ANSWER_INDEX = 1, INTRODUCED_INDEX = 2,
+                DUE_INDEX = 3, STATUS_INDEX = 4, PROMOTION_INDEX = 5, CAT_COUNT = 6;
+
         final String[] CATEGORIES = { "Clue", "Answer", "Introduced?", "Due",
                 "Status", "Answers to Promotion" };
+
         final List<Function<FlashCard, String>> FUNCTIONS = List.of(
                 FlashCard::getClue, FlashCard::getAnswer, x -> x.isIntroduced() ? "Yes" : "No",
                 x -> {
@@ -119,17 +123,26 @@ public class CLIOutput {
                 x -> potColor(x.getPot()) + x.getPot() + ANSI_RESET,
                 x -> String.valueOf(x.getPotCounter())
         );
-        final int CAT_COUNT = 6;
-        final int[] SPACES = { 50, 50, 15, 15, 15, 30 };
-        final int OFFSET = 3;
+
+        final int[] SPACES = new int[6];
+        SPACES[CLUE_INDEX] = 50;
+        SPACES[ANSWER_INDEX] = 50;
+        SPACES[INTRODUCED_INDEX] = 15;
+        SPACES[DUE_INDEX] = 15;
+        SPACES[STATUS_INDEX] = 15;
+        SPACES[PROMOTION_INDEX] = 30;
+
+        final int OFFSET = 3, BUFFER_THRESHOLD = 5;
         final String WHITESPACE = " ";
-        final String NON_PRINTED_POSIX = "\\P{Print}";
+        final String NON_PRINTED_POSIX = "\\p{C}";
 
         final OptionalInt MAX_CLUE_LENGTH = deck.getFlashCardClues().stream().mapToInt(String::length).max();
         final OptionalInt MAX_ANSWER_LENGTH = deck.getFlashCardAnswers().stream().mapToInt(String::length).max();
 
-        SPACES[0] = MAX_CLUE_LENGTH.isPresent() ? (MAX_CLUE_LENGTH.getAsInt() + 5) : 50;
-        SPACES[1] = MAX_ANSWER_LENGTH.isPresent() ? (MAX_ANSWER_LENGTH.getAsInt() + 5) : 50;
+        if (MAX_CLUE_LENGTH.isPresent())
+            SPACES[CLUE_INDEX] = MAX_CLUE_LENGTH.getAsInt() + BUFFER_THRESHOLD;
+        if (MAX_ANSWER_LENGTH.isPresent())
+            SPACES[ANSWER_INDEX] = MAX_ANSWER_LENGTH.getAsInt() + BUFFER_THRESHOLD;
 
         // Categories
         StringBuilder catSB = new StringBuilder();
@@ -153,10 +166,17 @@ public class CLIOutput {
             catSpaceSum = 0;
             for (int i = 0; i < CAT_COUNT; i++) {
                 catSpaceSum += SPACES[i];
-                if (i == 4) catSpaceSum += 10; // TODO: get rid of this hotfix
-                flSB.append(WHITESPACE.repeat(OFFSET)).append(FUNCTIONS.get(i).apply(fc)).
-                        append(WHITESPACE.repeat(catSpaceSum -
-                                flSB.toString().replaceAll(NON_PRINTED_POSIX, "").length()));
+                if (i == STATUS_INDEX) catSpaceSum += 10; // TODO: get rid of this hotfix
+
+                final String precedingWhitespace = WHITESPACE.repeat(OFFSET);
+                flSB.append(precedingWhitespace);
+
+                final String flashCardCategoryText = FUNCTIONS.get(i).apply(fc);
+                flSB.append(flashCardCategoryText);
+
+                final String lineWithNonPrintedRemoved = flSB.toString().replaceAll(NON_PRINTED_POSIX, "");
+                final String followingWhitespace = WHITESPACE.repeat(catSpaceSum - lineWithNonPrintedRemoved.length());
+                flSB.append(followingWhitespace);
             }
 
             sb.append(flSB).append(NEW_LINE.repeat(2));
@@ -326,6 +346,8 @@ public class CLIOutput {
         sb.append(borderLine()).append(ANSI_PURPLE_BOLD).append("[ Finished ");
         sb.append((lesson.isSR()) ? "Training" : "Test").append(" ]");
 
+        final String arrowDirection = Settings.isInReverseMode() ? " <- " : " -> ";
+
         int rightAnswers = lesson.getQuestions().stream().
                 filter(Question::isCorrect).collect(Collectors.toSet()).size();
 
@@ -348,7 +370,7 @@ public class CLIOutput {
         for (FlashCard f : flashCards) {
             sb.append(ANSI_RESET).append(flashCards.indexOf(f) + 1)
                     .append(". ").append(ANSI_PURPLE_BOLD).append(f.getClue())
-                    .append(ANSI_RESET).append(" -> ").append(ANSI_PURPLE_BOLD)
+                    .append(ANSI_RESET).append(arrowDirection).append(ANSI_PURPLE_BOLD)
                     .append(f.getAnswer()).append(ANSI_RESET).append(" [");
 
             questions.stream().filter(x -> x.getFlashCard().equals(f)).forEach(x -> {

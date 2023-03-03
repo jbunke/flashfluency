@@ -40,7 +40,7 @@ public class MarkerHelper {
         return correctAnswer.split(TERM_SEPARATOR);
     }
 
-    private static String removeBrackets(final String toConvert) {
+    public static String removeBrackets(final String toConvert) {
         return toConvert.replace("(", "").replace(")","").trim();
     }
 

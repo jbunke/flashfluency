@@ -47,11 +47,17 @@ public class Question {
     }
 
     private String fetchClue() {
-        return Settings.isInReverseMode() ? flashCard.getAnswer() : flashCard.getClue();
+        return MarkerHelper.removeBrackets(
+                Settings.isInReverseMode()
+                        ? flashCard.getAnswer()
+                        : flashCard.getClue()
+        );
     }
 
     private String fetchAnswer() {
-        return Settings.isInReverseMode() ? flashCard.getClue() : flashCard.getAnswer();
+        return Settings.isInReverseMode()
+                ? flashCard.getClue()
+                : flashCard.getAnswer();
     }
 
     private void mark(final boolean correct, final boolean SR) {
