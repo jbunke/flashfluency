@@ -231,7 +231,7 @@ public class CLIOutput {
             sb.insert(0, DIR_SEPARATOR);
             sb.insert(0, ANSI_RESET);
             sb.insert(0, context.getName());
-            sb.insert(0, DIR_SEPARATOR);
+            sb.insert(0, DIRECTORY_COLOR);
 
             context = context.getParent();
         }
