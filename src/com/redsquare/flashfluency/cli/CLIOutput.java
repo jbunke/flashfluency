@@ -35,6 +35,7 @@ public class CLIOutput {
     // private static final String ANSI_WHITE_BOLD = "\033[1;37m";  // WHITE
 
     private static final String NAME_HIGHLIGHT_COLOR = ANSI_CYAN_BOLD,
+            VALUE_HIGHLIGHT_COLOR = ANSI_PURPLE_BOLD,
             DIRECTORY_COLOR = ANSI_BLUE_BOLD, DECK_COLOR = ANSI_PURPLE_BOLD,
             SETTING_COLOR = ANSI_YELLOW_BOLD;
 
@@ -462,16 +463,18 @@ public class CLIOutput {
     }
 
     public static void writeSettingSet(String settingID, String value) {
-        String s = SETTING_COLOR + "Set " +
-                highlightName(settingID, SETTING_COLOR) +
-                " to " + highlightName(value, SETTING_COLOR);
+        String s = borderLine() + SETTING_COLOR + "Set " +
+                highlightName(settingID, SETTING_COLOR) + " to " +
+                VALUE_HIGHLIGHT_COLOR + value + NEW_LINE + borderLine();
 
-        write(s, true);
+        write(s, false);
     }
 
     public static void writePrintSettings(String[] technicalKeywords, int[] technicalSettings,
                                           String[] flagsKeywords, boolean[] flags,
                                           String[] otherKeywords, String[] otherSettings) {
+        write(borderLine(), false);
+
         for (int i = 0; i < otherKeywords.length; i++) {
             writePrintSetting(otherKeywords[i], String.valueOf(otherSettings[i]));
         }
@@ -483,6 +486,8 @@ public class CLIOutput {
         for (int i = 0; i < flagsKeywords.length; i++) {
             writePrintSetting(flagsKeywords[i], String.valueOf(flags[i]));
         }
+
+        write(borderLine(), false);
     }
 
     private static void writePrintSetting(final String keyword, final String value) {
@@ -554,7 +559,7 @@ public class CLIOutput {
         write(s, false);
     }
 
-    private static String highlightName(String name, String revertColor) {
+    private static String highlightName(final String name, final String revertColor) {
         return NAME_HIGHLIGHT_COLOR + name + revertColor;
     }
 }
