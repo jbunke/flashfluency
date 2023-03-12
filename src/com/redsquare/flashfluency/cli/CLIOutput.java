@@ -43,13 +43,13 @@ public class CLIOutput {
         String sb = borderLine() + ANSI_RED_BOLD +
                 (fatal ? "[ FATAL " : "[ ") +
                 "ERROR ]" + NEW_LINE + message + NEW_LINE + "so... " + consequence +
-                NEW_LINE + ANSI_RESET + borderLine();
+                NEW_LINE + borderLine();
 
         write(sb, false);
     }
 
     private static String borderLine() {
-        return BORDER_TICK.repeat(BORDER_TICK_NUM) + NEW_LINE;
+        return ANSI_RESET + BORDER_TICK.repeat(BORDER_TICK_NUM) + NEW_LINE;
     }
 
     private static String potColor(Pot pot) {
@@ -166,7 +166,7 @@ public class CLIOutput {
             catSpaceSum = 0;
             for (int i = 0; i < CAT_COUNT; i++) {
                 catSpaceSum += SPACES[i];
-                if (i == STATUS_INDEX) catSpaceSum += 10; // TODO: get rid of this hotfix
+                if (i == STATUS_INDEX) catSpaceSum += 9; // TODO: get rid of this hotfix
 
                 final String precedingWhitespace = WHITESPACE.repeat(OFFSET);
                 flSB.append(precedingWhitespace);
@@ -198,11 +198,12 @@ public class CLIOutput {
         decksWithDueCards.sort(Comparator.comparingInt(o -> -o.getAssociatedDeck().getNumDueFlashCards()));
 
         StringBuilder sb = new StringBuilder();
-        sb.append(ANSI_RESET).append(borderLine());
-        sb.append("Decks with due flash cards in directory \"")
-                .append(ANSI_BLUE_BOLD).append(directory.getName())
-                .append(ANSI_RESET).append("\":").append(NEW_LINE);
-        sb.append(ANSI_RESET).append(borderLine());
+        sb.append(borderLine());
+        sb.append(ANSI_BLUE_BOLD)
+                .append("Decks with due flash cards in directory ")
+                .append(highlightName(directory.getName(), ANSI_BLUE_BOLD))
+                .append(":").append(NEW_LINE);
+        sb.append(borderLine());
 
         decksWithDueCards.forEach(x ->
                 sb.append(ANSI_RESET).append(" -> ")
@@ -210,7 +211,7 @@ public class CLIOutput {
                 .append(deckInLine(x.getAssociatedDeck()))
                 .append(NEW_LINE));
 
-        sb.append(ANSI_RESET).append(borderLine());
+        sb.append(borderLine());
 
         write(sb.toString(), false);
     }
@@ -244,11 +245,11 @@ public class CLIOutput {
         children.sort(sorter);
 
         StringBuilder sb = new StringBuilder();
-        sb.append(ANSI_RESET).append(borderLine());
-        sb.append("Contents of directory \"")
-                .append(ANSI_BLUE_BOLD).append(directory.getName())
-                .append(ANSI_RESET).append("\":").append(NEW_LINE);
-        sb.append(ANSI_RESET).append(borderLine());
+        sb.append(borderLine());
+        sb.append(ANSI_BLUE_BOLD).append("Contents of directory ")
+                .append(highlightName(directory.getName(), ANSI_BLUE_BOLD))
+                .append(":").append(NEW_LINE);
+        sb.append(borderLine());
 
         children.forEach(x -> {
             sb.append(ANSI_RESET).append(" -> ");
@@ -261,7 +262,7 @@ public class CLIOutput {
             sb.append(NEW_LINE);
         });
 
-        sb.append(ANSI_RESET).append(borderLine());
+        sb.append(borderLine());
 
         write(sb.toString(), false);
     }
@@ -328,16 +329,15 @@ public class CLIOutput {
 
     public static void writeCorrectAnswerAccentDiscrepancy(String correctAnswer) {
         String s = ANSI_GREEN_BOLD + "[ CORRECT! ] ... but watch out for accents: " +
-                ANSI_CYAN_BOLD + correctAnswer + ANSI_GREEN_BOLD +
-                " is the perfect answer";
+                highlightName(correctAnswer, ANSI_GREEN_BOLD) + " is the perfect answer";
         write(s, true);
     }
 
     public static void writeWrongAnswerWithOptionToMarkCorrect(String correctAnswer) {
         String s = ANSI_RED_BOLD + "[ WRONG! ] The correct answer is " +
-                ANSI_CYAN_BOLD + correctAnswer + NEW_LINE + ANSI_PURPLE_BOLD + "Type \"" +
-                ANSI_CYAN_BOLD + CLIInput.getTypeToMarkCorrect() + ANSI_PURPLE_BOLD +
-                "\" to mark as correct anyway";
+                ANSI_CYAN_BOLD + correctAnswer + NEW_LINE + ANSI_PURPLE_BOLD + "Type " +
+                highlightName("[ " + CLIInput.getTypeToMarkCorrect() + " ]",
+                        ANSI_PURPLE_BOLD) + " to mark as correct anyway";
         write(s, true);
     }
 
@@ -356,7 +356,7 @@ public class CLIOutput {
 
         sb.append(NEW_LINE);
 
-        sb.append(ANSI_RESET).append(borderLine());
+        sb.append(borderLine());
 
         List<FlashCard> flashCards = new ArrayList<>();
         List<Question> questions = lesson.getQuestions();
@@ -388,7 +388,7 @@ public class CLIOutput {
             sb.append(NEW_LINE);
         }
 
-        sb.append(ANSI_RESET).append(borderLine());
+        sb.append(borderLine());
 
         write(sb.toString(), false);
     }
@@ -418,30 +418,33 @@ public class CLIOutput {
 
     public static void writeImportedFlashCard(FlashCard flashCard) {
         String s = ANSI_PURPLE_BOLD + "Imported flash card: [ CLUE ] : " +
-                ANSI_CYAN_BOLD + flashCard.getClue() + ANSI_PURPLE_BOLD + " , [ ANSWER ] : " +
-                ANSI_CYAN_BOLD + flashCard.getAnswer() + ANSI_PURPLE_BOLD;
+                highlightName(flashCard.getClue(), ANSI_PURPLE_BOLD) + " , [ ANSWER ] : " +
+                highlightName(flashCard.getAnswer(), ANSI_PURPLE_BOLD);
 
         write(s, true);
     }
 
     public static void writeSavedDeck(final Deck deck, final String filepath) {
-        String s = borderLine() + ANSI_PURPLE_BOLD + "Saved deck \"" + deck.getName() +
-                "\" to file " + filepath + NEW_LINE + ANSI_RESET + borderLine();
+        String s = borderLine() + ANSI_PURPLE_BOLD + "Saved deck " +
+                highlightName(deck.getName(), ANSI_PURPLE_BOLD) + " to file " +
+                filepath + NEW_LINE + borderLine();
 
         write(s, false);
     }
 
     public static void writeClearedDeck(final Deck deck) {
-        String s = borderLine() + ANSI_PURPLE_BOLD + "Cleared flash cards in deck \"" +
-                deck.getName() + "\"" + NEW_LINE + ANSI_RESET + borderLine();
+        String s = borderLine() + ANSI_PURPLE_BOLD + "Cleared flash cards in deck " +
+                highlightName(deck.getName(), ANSI_PURPLE_BOLD) +
+                NEW_LINE + borderLine();
 
         write(s, false);
     }
 
     public static void writeCreated(final String name, final boolean isDeck) {
         String s = borderLine() + ANSI_BLUE_BOLD + "Created " +
-                (isDeck ? "deck" : "directory") + " \"" + name + "\"" +
-                NEW_LINE + ANSI_RESET + borderLine();
+                (isDeck ? "deck " : "directory ") +
+                highlightName(name, ANSI_BLUE_BOLD) +
+                NEW_LINE + borderLine();
 
         write(s, false);
     }
@@ -489,17 +492,17 @@ public class CLIOutput {
         StringBuilder sb = new StringBuilder();
 
         sb.append(borderLine()).append(color).append("The current context is a ")
-                .append(ANSI_CYAN_BOLD).append(type).append(color)
+                .append(highlightName(type, color))
                 .append(", so the valid commands are:").append(NEW_LINE)
-                .append(ANSI_RESET).append(borderLine());
+                .append(borderLine());
 
         for (int i = 0; i < validCommands.length; i++) {
-            sb.append(ANSI_YELLOW_BOLD).append(validCommands[i]).append(ANSI_RESET)
-                    .append(" : ").append(color).append(color).append(explanation[i])
-                    .append(NEW_LINE);
+            sb.append(ANSI_YELLOW_BOLD).append(validCommands[i])
+                    .append(ANSI_RESET).append(" : ").append(color)
+                    .append(explanation[i]).append(NEW_LINE);
         }
 
-        sb.append(ANSI_RESET).append(borderLine());
+        sb.append(borderLine());
 
         write(sb.toString(), false);
     }
@@ -510,15 +513,17 @@ public class CLIOutput {
     }
 
     public static void writeRemovedTag(String arg) {
-        String s = ANSI_PURPLE_BOLD + "Removed tag \"" + arg +
+        String s = ANSI_PURPLE_BOLD + "Removed tag \"" +
+                highlightName(arg, ANSI_PURPLE_BOLD) +
                 "\" from the deck";
 
         write(s, true);
     }
 
     public static void writeAddedTag(String arg) {
-        String s = ANSI_PURPLE_BOLD + "Added tag \"" + arg +
-                "\" from the deck";
+        String s = ANSI_PURPLE_BOLD + "Added tag \"" +
+                highlightName(arg, ANSI_PURPLE_BOLD) +
+                "\" to the deck";
 
         write(s, true);
     }
@@ -538,7 +543,11 @@ public class CLIOutput {
                 "Flash Fluency is a flash card spaced repetition memorization program." + NEW_LINE +
                 "Jordan Bunke (2022)" + NEW_LINE +
                 "Type \"" + ANSI_YELLOW_BOLD + "help" + ANSI_BLUE_BOLD + "\" to get started." +
-                NEW_LINE + ANSI_RESET + borderLine();
+                NEW_LINE + borderLine();
         write(s, false);
+    }
+
+    private static String highlightName(String name, String revertColor) {
+        return ANSI_CYAN_BOLD + name + revertColor;
     }
 }

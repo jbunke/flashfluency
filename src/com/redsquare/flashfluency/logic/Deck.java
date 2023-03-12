@@ -50,7 +50,7 @@ public class Deck {
     }
 
     public void saveToFile() throws IOException {
-        DeckFileParser.savetoFile(filepath, description, tags, flashCards);
+        DeckFileParser.saveToFile(filepath, description, tags, flashCards);
     }
 
     private Set<FlashCard> filterFlashCards(Function<FlashCard, Boolean> f) {

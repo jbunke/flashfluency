@@ -16,7 +16,7 @@ public class DeckFileParser {
     // TODO: Consider possibility of making separators escape characters to permit
     // TODO: their usage between fields as legitimate data characters.
     private static final String FIELD_SEPARATOR = ";",
-            TAG_SEPARATOR = ",", DATE_SEPARATOR = "-";
+            TAG_SEPARATOR = ",", DATE_SEPARATOR = "-", EMPTY_TAG_FILTER = "";
 
     // line indices
     private static final int DESCRIPTION_INDEX = 0, TAGS_INDEX = 1,
@@ -67,8 +67,12 @@ public class DeckFileParser {
 
     private static Set<String> parseTags(String l, FFDeckFile deckFile) throws InvalidDeckFileFormatException {
         if (l.startsWith(KEYWORD_TAGS + Settings.SETTING_SEPARATOR)) {
-            String tags = l.substring((KEYWORD_TAGS + Settings.SETTING_SEPARATOR).length());
-            return new HashSet<>(Arrays.stream(tags.split(TAG_SEPARATOR)).toList());
+            String tagString = l.substring((KEYWORD_TAGS + Settings.SETTING_SEPARATOR).length());
+
+            Set<String> tags = new HashSet<>(Arrays.stream(tagString.split(TAG_SEPARATOR)).toList());
+            tags.remove(EMPTY_TAG_FILTER);
+
+            return tags;
         } else
             throw InvalidDeckFileFormatException.tagsImproperlyFormatted(deckFile.getFilepath());
     }
@@ -105,7 +109,7 @@ public class DeckFileParser {
             throw InvalidDeckFileFormatException.flashCardsImproperlyFormatted(deckFile.getFilepath());
     }
 
-    public static void savetoFile(String filepath, String description,
+    public static void saveToFile(String filepath, String description,
                                   Set<String> tags, Map<String, FlashCard> flashCards) throws IOException {
         String dir = filepath.substring(0, filepath.lastIndexOf(File.separator));
         File dirLocation = new File(dir);
