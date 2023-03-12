@@ -34,6 +34,10 @@ public class CLIOutput {
     private static final String ANSI_CYAN_BOLD = "\033[1;36m";   // CYAN
     // private static final String ANSI_WHITE_BOLD = "\033[1;37m";  // WHITE
 
+    private static final String NAME_HIGHLIGHT_COLOR = ANSI_CYAN_BOLD,
+            DIRECTORY_COLOR = ANSI_BLUE_BOLD, DECK_COLOR = ANSI_PURPLE_BOLD,
+            SETTING_COLOR = ANSI_YELLOW_BOLD;
+
     private static void write(final String formatted, final boolean newLine) {
         System.out.print(formatted + ANSI_RESET + (newLine ? NEW_LINE : EMPTY));
     }
@@ -65,7 +69,9 @@ public class CLIOutput {
     public static void writeDeck(Deck deck) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("Status of flash card deck \"").append(deck.getName()).append("\":").append(NEW_LINE.repeat(2));
+        sb.append(ANSI_RESET).append("Status of flash card deck ")
+                .append(highlightName(deck.getName(), ANSI_RESET)).append(":")
+                .append(NEW_LINE.repeat(2));
 
         appendSectionTitle(sb, "Description:");
         sb.append(deck.getDescription()).append(NEW_LINE.repeat(2));
@@ -73,7 +79,7 @@ public class CLIOutput {
         appendSectionTitle(sb, "Tags:");
 
         for (String tag : deck.getTags())
-            sb.append(ANSI_CYAN_BOLD).append(tag).append(ANSI_RESET).append(", ");
+            sb.append(highlightName(tag, ANSI_RESET)).append(", ");
         if (!deck.getTags().isEmpty())
             sb.delete(sb.length() - 2, sb.length());
         sb.append(NEW_LINE.repeat(2));
@@ -199,9 +205,9 @@ public class CLIOutput {
 
         StringBuilder sb = new StringBuilder();
         sb.append(borderLine());
-        sb.append(ANSI_BLUE_BOLD)
+        sb.append(DIRECTORY_COLOR)
                 .append("Decks with due flash cards in directory ")
-                .append(highlightName(directory.getName(), ANSI_BLUE_BOLD))
+                .append(highlightName(directory.getName(), DIRECTORY_COLOR))
                 .append(":").append(NEW_LINE);
         sb.append(borderLine());
 
@@ -225,7 +231,7 @@ public class CLIOutput {
             sb.insert(0, DIR_SEPARATOR);
             sb.insert(0, ANSI_RESET);
             sb.insert(0, context.getName());
-            sb.insert(0, ANSI_BLUE_BOLD);
+            sb.insert(0, DIR_SEPARATOR);
 
             context = context.getParent();
         }
@@ -246,8 +252,8 @@ public class CLIOutput {
 
         StringBuilder sb = new StringBuilder();
         sb.append(borderLine());
-        sb.append(ANSI_BLUE_BOLD).append("Contents of directory ")
-                .append(highlightName(directory.getName(), ANSI_BLUE_BOLD))
+        sb.append(DIRECTORY_COLOR).append("Contents of directory ")
+                .append(highlightName(directory.getName(), DIRECTORY_COLOR))
                 .append(":").append(NEW_LINE);
         sb.append(borderLine());
 
@@ -255,7 +261,7 @@ public class CLIOutput {
             sb.append(ANSI_RESET).append(" -> ");
 
             if (x instanceof FFDirectory)
-                sb.append(ANSI_BLUE_BOLD).append(x.getName());
+                sb.append(DIRECTORY_COLOR).append(x.getName());
             else
                 sb.append(deckInLine(((FFDeckFile) x).getAssociatedDeck()));
 
@@ -268,7 +274,7 @@ public class CLIOutput {
     }
 
     private static String deckInLine(Deck deck) {
-        return ANSI_PURPLE_BOLD + deck.getName() +
+        return DECK_COLOR + deck.getName() +
                 ANSI_RESET + " [ " +
                 ANSI_PURPLE_BOLD + deck.getNumDueFlashCards() +
                 ANSI_RESET + " due, " +
@@ -293,7 +299,7 @@ public class CLIOutput {
     }
 
     public static void writeUsernamePrompt() {
-        String color = ContextManager.getContext() instanceof FFDirectory ? ANSI_BLUE_BOLD : ANSI_PURPLE_BOLD;
+        String color = ContextManager.getContext() instanceof FFDirectory ? DIRECTORY_COLOR : DECK_COLOR;
 
         String s = color + "[ " +
                 ContextManager.getContext().getName() + " | " + Settings.getUsername() + " ] > ";
@@ -307,12 +313,12 @@ public class CLIOutput {
     }
 
     public static void writeFlashCardClue(String clue) {
-        String s = borderLine() + ANSI_PURPLE_BOLD + "[ Clue ] : " + ANSI_CYAN_BOLD + clue;
+        String s = borderLine() + DECK_COLOR + "[ Clue ] : " + NAME_HIGHLIGHT_COLOR + clue;
         write(s, true);
     }
 
     public static void writeFlashCardAnswerPrompt() {
-        String s = ANSI_PURPLE_BOLD + "[ Answer ] : " + ANSI_RESET;
+        String s = DECK_COLOR + "[ Answer ] : " + ANSI_RESET;
         write(s, false);
     }
 
@@ -323,7 +329,7 @@ public class CLIOutput {
 
     public static void writeWrongAnswer(String correctAnswer) {
         String s = ANSI_RED_BOLD + "[ WRONG! ] The correct answer is " +
-                ANSI_CYAN_BOLD + correctAnswer;
+                NAME_HIGHLIGHT_COLOR + correctAnswer;
         write(s, true);
     }
 
@@ -335,9 +341,9 @@ public class CLIOutput {
 
     public static void writeWrongAnswerWithOptionToMarkCorrect(String correctAnswer) {
         String s = ANSI_RED_BOLD + "[ WRONG! ] The correct answer is " +
-                ANSI_CYAN_BOLD + correctAnswer + NEW_LINE + ANSI_PURPLE_BOLD + "Type " +
+                NAME_HIGHLIGHT_COLOR + correctAnswer + NEW_LINE + DECK_COLOR + "Type " +
                 highlightName("[ " + CLIInput.getTypeToMarkCorrect() + " ]",
-                        ANSI_PURPLE_BOLD) + " to mark as correct anyway";
+                        DECK_COLOR) + " to mark as correct anyway";
         write(s, true);
     }
 
@@ -407,57 +413,58 @@ public class CLIOutput {
     }
 
     public static void writeNewFlashCardCluePrompt() {
-        String s = ANSI_PURPLE_BOLD + "Clue for new flash card: ";
+        String s = DECK_COLOR + "Clue for new flash card: ";
         write(s, false);
     }
 
     public static void writeNewFlashCardAnswerPrompt() {
-        String s = ANSI_PURPLE_BOLD + "Answer for new flash card: ";
+        String s = DECK_COLOR + "Answer for new flash card: ";
         write(s, false);
     }
 
     public static void writeImportedFlashCard(FlashCard flashCard) {
-        String s = ANSI_PURPLE_BOLD + "Imported flash card: [ CLUE ] : " +
-                highlightName(flashCard.getClue(), ANSI_PURPLE_BOLD) + " , [ ANSWER ] : " +
-                highlightName(flashCard.getAnswer(), ANSI_PURPLE_BOLD);
+        String s = DECK_COLOR + "Imported flash card: [ CLUE ] : " +
+                highlightName(flashCard.getClue(), DECK_COLOR) + " , [ ANSWER ] : " +
+                highlightName(flashCard.getAnswer(), DECK_COLOR);
 
         write(s, true);
     }
 
     public static void writeSavedDeck(final Deck deck, final String filepath) {
-        String s = borderLine() + ANSI_PURPLE_BOLD + "Saved deck " +
-                highlightName(deck.getName(), ANSI_PURPLE_BOLD) + " to file " +
-                filepath + NEW_LINE + borderLine();
+        String s = borderLine() + DECK_COLOR + "Saved deck " +
+                highlightName(deck.getName(), DECK_COLOR) + " to file " +
+                highlightName(filepath, DECK_COLOR) + NEW_LINE + borderLine();
 
         write(s, false);
     }
 
     public static void writeClearedDeck(final Deck deck) {
-        String s = borderLine() + ANSI_PURPLE_BOLD + "Cleared flash cards in deck " +
-                highlightName(deck.getName(), ANSI_PURPLE_BOLD) +
+        String s = borderLine() + DECK_COLOR + "Cleared flash cards in deck " +
+                highlightName(deck.getName(), DECK_COLOR) +
                 NEW_LINE + borderLine();
 
         write(s, false);
     }
 
     public static void writeCreated(final String name, final boolean isDeck) {
-        String s = borderLine() + ANSI_BLUE_BOLD + "Created " +
+        String s = borderLine() + DIRECTORY_COLOR + "Created " +
                 (isDeck ? "deck " : "directory ") +
-                highlightName(name, ANSI_BLUE_BOLD) +
+                highlightName(name, DIRECTORY_COLOR) +
                 NEW_LINE + borderLine();
 
         write(s, false);
     }
 
     public static void writeRetiredLesson() {
-        String s = borderLine() + ANSI_PURPLE_BOLD + "Retired from lesson.";
+        String s = borderLine() + DECK_COLOR + "Retired from lesson.";
 
         write(s, true);
     }
 
     public static void writeSettingSet(String settingID, String value) {
-        String s = ANSI_YELLOW_BOLD + "Set \"" + settingID +
-                "\" to " + value;
+        String s = SETTING_COLOR + "Set " +
+                highlightName(settingID, SETTING_COLOR) +
+                " to " + highlightName(value, SETTING_COLOR);
 
         write(s, true);
     }
@@ -479,14 +486,14 @@ public class CLIOutput {
     }
 
     private static void writePrintSetting(final String keyword, final String value) {
-        String s = ANSI_YELLOW_BOLD + keyword + ANSI_RESET + " -> " +
-                ANSI_YELLOW_BOLD + value;
+        String s = SETTING_COLOR + keyword + ANSI_RESET + " -> " +
+                SETTING_COLOR + value;
         write(s, true);
     }
 
     public static void writeHelp(final boolean isDeck, final String[] validCommands,
                                  final String[] explanation) {
-        String color = isDeck ? ANSI_PURPLE_BOLD : ANSI_BLUE_BOLD;
+        String color = isDeck ? DECK_COLOR : DIRECTORY_COLOR;
         String type = isDeck ? "deck" : "directory";
 
         StringBuilder sb = new StringBuilder();
@@ -508,46 +515,46 @@ public class CLIOutput {
     }
 
     public static void writeDescriptionPrompt() {
-        String s = ANSI_PURPLE_BOLD + "Set deck description: ";
+        String s = DECK_COLOR + "Set deck description: ";
         write(s, false);
     }
 
     public static void writeRemovedTag(String arg) {
-        String s = ANSI_PURPLE_BOLD + "Removed tag \"" +
-                highlightName(arg, ANSI_PURPLE_BOLD) +
-                "\" from the deck";
+        String s = DECK_COLOR + "Removed tag " +
+                highlightName(arg, DECK_COLOR) +
+                " from the deck";
 
         write(s, true);
     }
 
     public static void writeAddedTag(String arg) {
-        String s = ANSI_PURPLE_BOLD + "Added tag \"" +
-                highlightName(arg, ANSI_PURPLE_BOLD) +
-                "\" to the deck";
+        String s = DECK_COLOR + "Added tag " +
+                highlightName(arg, DECK_COLOR) +
+                " to the deck";
 
         write(s, true);
     }
 
     public static void writeSetRootDirectoryPrompt() {
-        String s = ANSI_BLUE_BOLD + "Set root directory: ";
+        String s = DIRECTORY_COLOR + "Set root directory: ";
         write(s, false);
     }
 
     public static void writeSetUsernamePrompt() {
-        String s = ANSI_BLUE_BOLD + "Set username: ";
+        String s = ANSI_RESET + "Set username: ";
         write(s, false);
     }
 
     public static void writeWelcomeMessage() {
-        String s = borderLine() + ANSI_BLUE_BOLD + "Welcome to Flash Fluency!" + NEW_LINE +
+        String s = borderLine() + DIRECTORY_COLOR + "Welcome to Flash Fluency!" + NEW_LINE +
                 "Flash Fluency is a flash card spaced repetition memorization program." + NEW_LINE +
                 "Jordan Bunke (2022)" + NEW_LINE +
-                "Type \"" + ANSI_YELLOW_BOLD + "help" + ANSI_BLUE_BOLD + "\" to get started." +
+                "Type " + highlightName(CommandParser.CMD_HELP, DIRECTORY_COLOR) + " to get started." +
                 NEW_LINE + borderLine();
         write(s, false);
     }
 
     private static String highlightName(String name, String revertColor) {
-        return ANSI_CYAN_BOLD + name + revertColor;
+        return NAME_HIGHLIGHT_COLOR + name + revertColor;
     }
 }

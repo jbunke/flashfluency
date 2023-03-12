@@ -22,7 +22,7 @@ public class CommandParser {
     private static final String CMD_GOTO = "goto"; // DONE
     private static final String CMD_SET = "set"; // DONE
     private static final String CMD_SETTINGS = "settings"; // DONE
-    private static final String CMD_HELP = "help"; // DONE
+    public static final String CMD_HELP = "help"; // DONE
     private static final String CMD_ADD = "add"; // DONE
     private static final String CMD_REMOVE = "remove"; // DONE
     private static final String CMD_EDIT = "edit"; // DONE
