@@ -491,7 +491,7 @@ public class CLIOutput {
     }
 
     private static void writePrintSetting(final String keyword, final String value) {
-        String s = SETTING_COLOR + keyword + ANSI_RESET + " -> " +
+        String s = SETTING_COLOR + keyword + ANSI_RESET + " : " +
                 SETTING_COLOR + value;
         write(s, true);
     }
