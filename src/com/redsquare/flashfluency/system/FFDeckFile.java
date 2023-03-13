@@ -29,7 +29,20 @@ public class FFDeckFile extends FFFile {
     }
 
     @Override
-    public void getDecksWithDue(Set<FFDeckFile> hasDue) {
+    public void getDecksWithMatchingTags(
+            final Set<FFDeckFile> hasMatchingTags, final String[] tags
+    ) {
+        final Set<String> tagsInDeck = associatedDeck.getTags();
+
+        for (String tag : tags)
+            if (!tagsInDeck.contains(tag))
+                return;
+
+        hasMatchingTags.add(this);
+    }
+
+    @Override
+    public void getDecksWithDue(final Set<FFDeckFile> hasDue) {
         if (associatedDeck.getNumDueFlashCards() > 0)
             hasDue.add(this);
     }

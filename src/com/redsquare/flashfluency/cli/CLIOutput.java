@@ -202,33 +202,77 @@ public class CLIOutput {
         sb.append(DECK_COLOR).append(sectionTitle).append(NEW_LINE).append(ANSI_RESET);
     }
 
-    public static void writeDecksWithDueCards(FFDirectory directory) {
-        Set<FFDeckFile> hasDue = new HashSet<>();
-        directory.getDecksWithDue(hasDue);
+    public static void writeDecksWithMatchingTags(final FFDirectory directory, final String tagString) {
+        final String TAG_SEPARATOR = ",";
+        final String[] tags = tagString.split(TAG_SEPARATOR);
 
-        List<FFDeckFile> decksWithDueCards = new ArrayList<>(hasDue);
-        decksWithDueCards.sort(Comparator.comparingInt(o -> -o.getAssociatedDeck().getNumDueFlashCards()));
+        for (int i = 0; i < tags.length; i++)
+            tags[i] = tags[i].trim();
+
+        final Set<FFDeckFile> hasMatchingTags = new HashSet<>();
+        directory.getDecksWithMatchingTags(hasMatchingTags, tags);
+
+        final List<FFDeckFile> decksWithMatchingTags = new ArrayList<>(hasMatchingTags);
+        decksWithMatchingTags.sort(Comparator.comparingInt(o -> -o.getAssociatedDeck().getNumDueFlashCards()));
 
         StringBuilder sb = new StringBuilder();
         sb.append(borderLine());
         sb.append(DIRECTORY_COLOR)
-                .append("Decks with due flash cards in directory ")
+                .append("Decks with the tag");
+
+        if (tags.length > 1)
+            sb.append("s ");
+        else
+            sb.append(" ");
+
+        for (String tag : tags)
+            sb.append(highlightName(tag, DIRECTORY_COLOR)).append(", ");
+
+        sb.append("accessible from directory ")
                 .append(highlightName(directory.getName(), DIRECTORY_COLOR))
                 .append(":").append(NEW_LINE);
         sb.append(borderLine());
 
-        decksWithDueCards.forEach(x ->
-                sb.append(ANSI_RESET).append(" -> ")
-                .append(relativePath(directory, x))
-                .append(deckInLine(x.getAssociatedDeck()))
-                .append(NEW_LINE));
+        formatDeckRelativePaths(decksWithMatchingTags, directory, sb);
 
         sb.append(borderLine());
 
         write(sb.toString(), false);
     }
 
-    private static String relativePath(FFDirectory from, FFFile to) {
+    public static void writeDecksWithDueCards(final FFDirectory directory) {
+        final Set<FFDeckFile> hasDue = new HashSet<>();
+        directory.getDecksWithDue(hasDue);
+
+        final List<FFDeckFile> decksWithDueCards = new ArrayList<>(hasDue);
+        decksWithDueCards.sort(Comparator.comparingInt(o -> -o.getAssociatedDeck().getNumDueFlashCards()));
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(borderLine());
+        sb.append(DIRECTORY_COLOR)
+                .append("Decks with flash cards that are due, accessible from directory ")
+                .append(highlightName(directory.getName(), DIRECTORY_COLOR))
+                .append(":").append(NEW_LINE);
+        sb.append(borderLine());
+
+        formatDeckRelativePaths(decksWithDueCards, directory, sb);
+
+        sb.append(borderLine());
+
+        write(sb.toString(), false);
+    }
+
+    private static void formatDeckRelativePaths(
+            final List<FFDeckFile> deckFileList, final FFDirectory directory, final StringBuilder sb
+    ) {
+        deckFileList.forEach(x ->
+                sb.append(ANSI_RESET).append(" -> ")
+                        .append(relativePath(directory, x))
+                        .append(deckInLine(x.getAssociatedDeck()))
+                        .append(NEW_LINE));
+    }
+
+    private static String relativePath(final FFDirectory from, final FFFile to) {
         StringBuilder sb = new StringBuilder();
 
         FFDirectory context = to.getParent();

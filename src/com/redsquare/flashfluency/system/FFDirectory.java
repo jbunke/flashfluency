@@ -52,7 +52,15 @@ public class FFDirectory extends FFFile {
     }
 
     @Override
-    public void getDecksWithDue(Set<FFDeckFile> hasDue) {
+    public void getDecksWithMatchingTags(
+            final Set<FFDeckFile> hasMatchingTags, final String[] tags
+    ) {
+        for (String childName : children.keySet())
+            children.get(childName).getDecksWithMatchingTags(hasMatchingTags, tags);
+    }
+
+    @Override
+    public void getDecksWithDue(final Set<FFDeckFile> hasDue) {
         for (String childName : children.keySet())
             children.get(childName).getDecksWithDue(hasDue);
     }
