@@ -33,7 +33,7 @@ public class Question {
         if (MarkerHelper.isCorrectMarkingForAccents(correctAnswer, response)) {
             CLIOutput.writeCorrectAnswer();
             mark(true, SR);
-        } else if (!Settings.isMarkingForAccents() &&
+        } else if (Settings.isNotMarkingForAccents() &&
                 MarkerHelper.isCorrectNotMarkingForAccents(correctAnswer, response)) {
             CLIOutput.writeCorrectAnswerAccentDiscrepancy(correctAnswer);
             mark(true, SR);

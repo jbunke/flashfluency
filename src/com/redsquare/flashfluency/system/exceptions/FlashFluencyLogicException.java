@@ -8,6 +8,17 @@ public class FlashFluencyLogicException extends FlashFluencyException {
         super(message, fatal, consequence);
     }
 
+    public static FlashFluencyLogicException numberOfUpdatedSettingsDoesNotMatchExpected(
+            final int settings, final int values, final boolean isSR
+    ) {
+        return new FlashFluencyLogicException(
+                "The number of updated settings (" + settings +
+                        ") does not match the expected amount (" + values + ".",
+                false, "No settings were updated and the " +
+                (isSR ? "lesson" : "test") + " was aborted."
+        );
+    }
+
     public static FlashFluencyLogicException invalidArgumentName() {
         return new FlashFluencyLogicException(
                 "The command contained an invalid argument.",

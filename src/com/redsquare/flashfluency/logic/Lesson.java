@@ -22,6 +22,8 @@ public class Lesson {
         this.deck = deck;
         // SR 'learn' command lesson constructor
         this.SR = true;
+        deck.prepForLesson(isSR());
+
         this.questions = new ArrayList<>();
         setInitialSRQuestions(deck);
     }
@@ -30,21 +32,23 @@ public class Lesson {
         this.deck = deck;
         // Non-SR 'test' command lesson constructor
         this.SR = false;
+        deck.prepForLesson(isSR());
+
         this.questions = new ArrayList<>();
         setInitialTestQuestions(deck, NUM_Qs);
     }
 
-    public static void learn(Deck deck) {
+    public static void learn(final Deck deck) {
         Lesson l =  new Lesson(deck);
         l.takeLesson();
     }
 
-    public static void testAll(Deck deck) {
+    public static void testAll(final Deck deck) {
         Lesson l =  new Lesson(deck, deck.getNumOfFlashCards());
         l.takeLesson();
     }
 
-    public static void testSubset(Deck deck, final String NUM_Qs) {
+    public static void testSubset(final Deck deck, final String NUM_Qs) {
         Lesson l = new Lesson(deck, Integer.parseInt(NUM_Qs));
         l.takeLesson();
     }

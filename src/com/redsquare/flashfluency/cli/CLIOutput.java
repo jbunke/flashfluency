@@ -462,10 +462,22 @@ public class CLIOutput {
         write(s, true);
     }
 
-    public static void writeSettingSet(String settingID, String value) {
+    public static void writeSettingUpdateNotification(final String reason) {
+        String s = borderLine() + DECK_COLOR + "The active deck is " +
+                highlightName(reason, DECK_COLOR) +
+                ", so the following settings have been updated:";
+
+        write(s, true);
+    }
+
+    public static void writeSettingSet(
+            final String settingID, final String value,
+            final boolean subsequentBorderLine
+    ) {
         String s = borderLine() + SETTING_COLOR + "Set " +
                 highlightName(settingID, SETTING_COLOR) + " to " +
-                VALUE_HIGHLIGHT_COLOR + value + NEW_LINE + borderLine();
+                VALUE_HIGHLIGHT_COLOR + value + NEW_LINE +
+                (subsequentBorderLine ? borderLine() : "");
 
         write(s, false);
     }

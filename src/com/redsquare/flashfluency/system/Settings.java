@@ -3,6 +3,7 @@ package com.redsquare.flashfluency.system;
 import com.redsquare.flashfluency.cli.CLIInput;
 import com.redsquare.flashfluency.cli.CLIOutput;
 import com.redsquare.flashfluency.cli.ExceptionMessenger;
+import com.redsquare.flashfluency.logic.Deck;
 import com.redsquare.flashfluency.system.exceptions.FFErrorMessages;
 import com.redsquare.flashfluency.system.exceptions.FlashFluencyLogicException;
 import com.redsquare.flashfluency.system.exceptions.InvalidDirectoryFormatException;
@@ -81,8 +82,8 @@ public class Settings {
         return TECHNICAL_SETTINGS[LESSON_COUNTER_REVIEW];
     }
 
-    public static boolean isMarkingForAccents() {
-        return FLAGS[MARK_FOR_ACCENTS];
+    public static boolean isNotMarkingForAccents() {
+        return !FLAGS[MARK_FOR_ACCENTS];
     }
 
     public static boolean isOptionForMarkingMismatchAsCorrect() {
@@ -300,7 +301,7 @@ public class Settings {
             return;
         }
 
-        CLIOutput.writeSettingSet(settingID, value);
+        CLIOutput.writeSettingSet(settingID, value, true);
     }
 
     public static void printSettings() {
@@ -309,5 +310,53 @@ public class Settings {
 
         CLIOutput.writePrintSettings(TECHNICAL_KEYWORDS, TECHNICAL_SETTINGS,
                 FLAGS_KEYWORDS, FLAGS, OTHER_KEYWORDS, OTHER_SETTINGS);
+    }
+
+    public static void irreversibleDeckSettingsUpdate(final boolean isSR) {
+        FLAGS[REVERSE_MODE] = false;
+
+        settingsUpdate(
+                Deck.TAG_IRREVERSIBLE,
+                new String[] { FLAGS_KEYWORDS[REVERSE_MODE] },
+                new String[] { "false" },
+                isSR
+        );
+    }
+
+    public static void strictDeckSettingsUpdate(final boolean isSR) {
+        FLAGS[MARK_FOR_ACCENTS] = true;
+        FLAGS[OPTION_TO_MARK_MISMATCH_AS_CORRECT] = false;
+        FLAGS[IGNORE_BRACKETED] = false;
+
+        settingsUpdate(
+                Deck.TAG_STRICT,
+                new String[] {
+                        FLAGS_KEYWORDS[MARK_FOR_ACCENTS], FLAGS_KEYWORDS[IGNORE_BRACKETED],
+                        FLAGS_KEYWORDS[OPTION_TO_MARK_MISMATCH_AS_CORRECT]
+                },
+                new String[] {
+                        "true", "false", "false"
+                },
+                isSR
+        );
+    }
+
+    private static void settingsUpdate(
+            final String reason, final String[] settingIDs, final String[] values,
+            final boolean isSR
+    ) {
+        if (settingIDs.length != values.length) {
+            ExceptionMessenger.deliver(
+                    FlashFluencyLogicException.numberOfUpdatedSettingsDoesNotMatchExpected(
+                            settingIDs.length, values.length, isSR
+                    )
+            );
+        }
+
+        CLIOutput.writeSettingUpdateNotification(reason);
+
+        for (int i = 0; i < settingIDs.length; i++)
+            CLIOutput.writeSettingSet(settingIDs[i], values[i],
+                    i + 1 == settingIDs.length);
     }
 }

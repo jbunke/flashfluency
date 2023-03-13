@@ -11,7 +11,7 @@ public class ExceptionMessenger {
     }
 
     public static void deliver(final String message, final boolean fatal) {
-        deliver(message, fatal, "[Consequence not specified]");
+        deliver(message, fatal, "[ Consequence not specified ]");
     }
 
     public static void deliver(FlashFluencyException e) {

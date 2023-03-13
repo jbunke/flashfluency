@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.function.Function;
 
 public class Deck {
+    public static final String TAG_IRREVERSIBLE = "irreversible", TAG_STRICT = "strict";
+
     private final String name;
     private final String filepath;
 
@@ -191,5 +193,19 @@ public class Deck {
 
     public void removeTag(final String tag) {
         tags.remove(tag);
+    }
+
+    public void prepForLesson(final boolean isSR) {
+        final boolean UPDATE_COND_IRREVERSIBLE = Settings.isInReverseMode(),
+                UPDATE_COND_STRICT = Settings.isNotMarkingForAccents() ||
+                        Settings.isOptionForMarkingMismatchAsCorrect() ||
+                        Settings.isIgnoringBracketed();
+
+        // is irreversible check
+        if (tags.contains(TAG_IRREVERSIBLE) && UPDATE_COND_IRREVERSIBLE)
+            Settings.irreversibleDeckSettingsUpdate(isSR);
+
+        if (tags.contains(TAG_STRICT) && UPDATE_COND_STRICT)
+            Settings.strictDeckSettingsUpdate(isSR);
     }
 }
