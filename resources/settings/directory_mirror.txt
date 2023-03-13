@@ -38,6 +38,11 @@
 		]
 	],
 	"yo"->[
+		"teach yourself yoruba"->[
+			"intro"->[
+				"pronunciation distinction"
+			]
+		],
 		"yoruba ye mi"->[
 			"chapter 1"->[
 				"vocabulary",
@@ -45,7 +50,8 @@
 				"verbs"
 			],
 			"intro"->[]
-		]
+		],
+		"curated"->[]
 	],
 	"es"->[]
 ]

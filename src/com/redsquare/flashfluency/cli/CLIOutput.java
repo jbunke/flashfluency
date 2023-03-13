@@ -18,7 +18,6 @@ public class CLIOutput {
     private static final int BORDER_TICK_NUM = 50;
     private static final String BORDER_TICK = "+-";
 
-    private static final String UNDERLINE = "-";
     private static final String DIR_SEPARATOR = "/";
 
     private static final String ANSI_RESET = "\033[0m";
@@ -116,6 +115,7 @@ public class CLIOutput {
         sb.append(")").append(NEW_LINE).append(borderLine());
 
         appendSectionTitle(sb, "Flash Card Table:");
+        sb.append(NEW_LINE);
 
         final int CLUE_INDEX = 0, ANSWER_INDEX = 1, INTRODUCED_INDEX = 2,
                 DUE_INDEX = 3, STATUS_INDEX = 4, PROMOTION_INDEX = 5, CAT_COUNT = 6;
@@ -165,7 +165,7 @@ public class CLIOutput {
                             catSB.toString().replaceAll(NON_PRINTED_POSIX, "").length()));
         }
 
-        sb.append(catSB).append(NEW_LINE).append(UNDERLINE.repeat(catSpaceSum)).append(NEW_LINE);
+        sb.append(catSB).append(NEW_LINE).append(BORDER_TICK.repeat(catSpaceSum / 2)).append(NEW_LINE);
 
         List<String> fs = new ArrayList<>(deck.getFlashCardClues());
         fs.sort(Comparator.naturalOrder());
