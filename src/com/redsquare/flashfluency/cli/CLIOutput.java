@@ -18,7 +18,6 @@ public class CLIOutput {
     private static final int BORDER_TICK_NUM = 50;
     private static final String BORDER_TICK = "+-";
 
-    private static final int UNDERLINE_NUM = 20;
     private static final String UNDERLINE = "-";
     private static final String DIR_SEPARATOR = "/";
 
@@ -70,12 +69,14 @@ public class CLIOutput {
     public static void writeDeck(Deck deck) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append(ANSI_RESET).append("Status of flash card deck ")
-                .append(highlightName(deck.getName(), ANSI_RESET)).append(":")
-                .append(NEW_LINE.repeat(2));
+        sb.append(borderLine());
+
+        sb.append(DECK_COLOR).append("Details of flash card deck ")
+                .append(highlightName(deck.getName(), DECK_COLOR)).append(":")
+                .append(NEW_LINE).append(borderLine());
 
         appendSectionTitle(sb, "Description:");
-        sb.append(deck.getDescription()).append(NEW_LINE.repeat(2));
+        sb.append(deck.getDescription()).append(NEW_LINE).append(borderLine());
 
         appendSectionTitle(sb, "Tags:");
 
@@ -83,9 +84,9 @@ public class CLIOutput {
             sb.append(highlightName(tag, ANSI_RESET)).append(", ");
         if (!deck.getTags().isEmpty())
             sb.delete(sb.length() - 2, sb.length());
-        sb.append(NEW_LINE.repeat(2));
+        sb.append(NEW_LINE).append(borderLine());
 
-        appendSectionTitle(sb, "Flash Cards:");
+        appendSectionTitle(sb, "Breakdown:");
 
         String color = deckPercentageScoreColor(deck);
 
@@ -112,7 +113,9 @@ public class CLIOutput {
             processed++;
         }
 
-        sb.append(")").append(NEW_LINE.repeat(2));
+        sb.append(")").append(NEW_LINE).append(borderLine());
+
+        appendSectionTitle(sb, "Flash Card Table:");
 
         final int CLUE_INDEX = 0, ANSWER_INDEX = 1, INTRODUCED_INDEX = 2,
                 DUE_INDEX = 3, STATUS_INDEX = 4, PROMOTION_INDEX = 5, CAT_COUNT = 6;
@@ -189,12 +192,14 @@ public class CLIOutput {
             sb.append(flSB).append(NEW_LINE.repeat(2));
         }
 
+        sb.delete(sb.length() - 1, sb.length());
+        sb.append(borderLine());
+
         write(sb.toString(), false);
     }
 
     private static void appendSectionTitle(StringBuilder sb, String sectionTitle) {
-        sb.append(sectionTitle).append(NEW_LINE).append(ANSI_RESET).
-                append(UNDERLINE.repeat(UNDERLINE_NUM)).append(NEW_LINE.repeat(2));
+        sb.append(DECK_COLOR).append(sectionTitle).append(NEW_LINE).append(ANSI_RESET);
     }
 
     public static void writeDecksWithDueCards(FFDirectory directory) {
