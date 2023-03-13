@@ -254,7 +254,7 @@ public class CommandParser {
                         " ; only lines with a single comma delimiter " +
                         "separating clue and value are valid and imported", // import [filepath]
                 "Clears all of the flash cards from the deck, including their memorization data", // clear
-                "Resets all of memorization data for every flash card from the deck", // reset
+                "Resets all of memorization data for every flash card in the deck", // reset
                 "Saves the deck to the associated deck file", // save
                 "Prints the deck's description, tags, and flash cards", // view
                 "Saves and quits the program", // quit
