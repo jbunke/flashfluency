@@ -99,6 +99,14 @@ public class FlashCard {
         due = LocalDate.now().plusDays(pot.daysDue());
     }
 
+    public void reset() {
+        introduced = false;
+        pot = Pot.NEW;
+        potCounter = pot.answersForPromotion();
+
+        setDueToday();
+    }
+
     public LocalDate getDue() {
         return due;
     }

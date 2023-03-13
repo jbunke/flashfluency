@@ -452,6 +452,15 @@ public class CLIOutput {
         write(s, false);
     }
 
+    public static void writeResetDeckMemorizationData(final Deck deck) {
+        String s = borderLine() + DECK_COLOR +
+                "Reset memorization data of flash cards in deck " +
+                highlightName(deck.getName(), DECK_COLOR) +
+                NEW_LINE + borderLine();
+
+        write(s, false);
+    }
+
     public static void writeCreated(final String name, final boolean isDeck) {
         String s = borderLine() + DIRECTORY_COLOR + "Created " +
                 (isDeck ? "deck " : "directory ") +

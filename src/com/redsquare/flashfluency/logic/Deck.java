@@ -191,6 +191,12 @@ public class Deck {
         CLIOutput.writeClearedDeck(this);
     }
 
+    public void resetMemorizationData() {
+        Set<String> keys = new HashSet<>(flashCards.keySet());
+        keys.forEach(x -> flashCards.get(x).reset());
+        CLIOutput.writeResetDeckMemorizationData(this);
+    }
+
     public void removeTag(final String tag) {
         tags.remove(tag);
     }

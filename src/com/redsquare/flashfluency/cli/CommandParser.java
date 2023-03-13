@@ -29,6 +29,7 @@ public class CommandParser {
     private static final String CMD_CREATE = "create"; // DONE
     private static final String CMD_IMPORT = "import"; // DONE
     private static final String CMD_CLEAR = "clear"; // DONE
+    private static final String CMD_RESET = "reset"; // DONE
     private static final String CMD_SAVE = "save"; // DONE
     private static final String CMD_LIST = "list"; // DONE
     private static final String CMD_VIEW = "view"; // DONE
@@ -69,6 +70,8 @@ public class CommandParser {
             parseDeckCommand(CLIOutput::writeDeck);
         else if (command.startsWith(CMD_CLEAR))
             parseDeckCommand(Deck::clearDeck);
+        else if (command.startsWith(CMD_RESET))
+            parseDeckCommand(Deck::resetMemorizationData);
         else if (command.startsWith(CMD_SAVE))
             parseDeckCommand(Deck::saveDeck);
         else if (command.startsWith(CMD_EDIT))
@@ -227,6 +230,7 @@ public class CommandParser {
                 CMD_ADD + ARG_SEPARATOR + FLASH_CARD,
                 CMD_IMPORT + ARG_SEPARATOR + FILEPATH,
                 CMD_CLEAR,
+                CMD_RESET,
                 CMD_SAVE,
                 CMD_VIEW,
                 CMD_QUIT,
@@ -250,6 +254,7 @@ public class CommandParser {
                         " ; only lines with a single comma delimiter " +
                         "separating clue and value are valid and imported", // import [filepath]
                 "Clears all of the flash cards from the deck, including their memorization data", // clear
+                "Resets all of memorization data for every flash card from the deck", // reset
                 "Saves the deck to the associated deck file", // save
                 "Prints the deck's description, tags, and flash cards", // view
                 "Saves and quits the program", // quit
