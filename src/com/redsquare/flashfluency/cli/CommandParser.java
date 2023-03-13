@@ -220,74 +220,74 @@ public class CommandParser {
 
     private static void parseHelpCommand() {
         final String[] DECK_COMMANDS = {
-                CMD_LEARN,
-                CMD_TEST + ARG_SEPARATOR + ALL,
-                CMD_TEST + ARG_SEPARATOR + SUBSET + VAL,
-                CMD_GOTO + ARG_SEPARATOR + PARENT_DIR,
-                CMD_SET + ARG_SEPARATOR + SETTING_ID + ARG_SEPARATOR + VAL,
-                CMD_SETTINGS,
-                CMD_ADD + ARG_SEPARATOR + TAG + NAME,
                 CMD_ADD + ARG_SEPARATOR + FLASH_CARD,
-                CMD_IMPORT + ARG_SEPARATOR + FILEPATH,
+                CMD_ADD + ARG_SEPARATOR + TAG + NAME,
                 CMD_CLEAR,
+                CMD_EDIT,
+                CMD_GOTO + ARG_SEPARATOR + PARENT_DIR,
+                CMD_HELP,
+                CMD_IMPORT + ARG_SEPARATOR + FILEPATH,
+                CMD_LEARN,
+                CMD_QUIT,
+                CMD_REMOVE + ARG_SEPARATOR + TAG + NAME,
                 CMD_RESET,
                 CMD_SAVE,
-                CMD_VIEW,
-                CMD_QUIT,
-                CMD_EDIT,
-                CMD_REMOVE + ARG_SEPARATOR + TAG + NAME,
-                CMD_HELP
+                CMD_SET + ARG_SEPARATOR + SETTING_ID + ARG_SEPARATOR + VAL,
+                CMD_SETTINGS,
+                CMD_TEST + ARG_SEPARATOR + ALL,
+                CMD_TEST + ARG_SEPARATOR + SUBSET + VAL,
+                CMD_VIEW
         };
         final String[] DECK_EXPLANATIONS = {
+                "Adds a new flash card to the deck and prompts the user to pass in a clue and answer", // add flashcard
+                "Adds tag " + NAME + " to the current deck", // add tag [name]
+                "Clears all of the flash cards from the deck, including their memorization data", // clear
+                "Prompts the user for a new description for the deck", // edit
+                "Changes the context to the deck's parent directory", // goto ..
+                "Displays the valid commands at this context scope", // help
+                "Imports flash cards from a CSV file " + FILEPATH +
+                        " ; only lines with a single comma delimiter " +
+                        "separating clue and value are valid and imported", // import [filepath]
                 "Runs a spaced repetition lesson in the current deck" +
                         " and updates the memorization status of tested flash cards", // learn
+                "Saves and quits the program", // quit
+                "Removes the tag " + NAME + " from the deck", // remove
+                "Resets all of memorization data for every flash card in the deck", // reset
+                "Saves the deck to the associated deck file", // save
+                "Sets setting " + SETTING_ID + " to the value " + VAL, // set [setting_id] [X]
+                "Lists all the program settings and their current values", // settings
                 "Tests all flash cards once with a score at the end;" +
                         " does not affect memorization status", // test all
                 "Tests a subset of X cards in the deck with a score at the end;" +
                         " does not affect memorization status", // test subset [X]
-                "Changes the context to the deck's parent directory", // goto ..
-                "Sets setting " + SETTING_ID + " to the value " + VAL, // set [setting_id] [X]
-                "Lists all the program settings and their current values", // settings
-                "Adds tag " + NAME + " to the current deck", // add tag [name]
-                "Adds a new flash card to the deck and prompts the user to pass in a clue and answer", // add flashcard
-                "Imports flash cards from a CSV file " + FILEPATH +
-                        " ; only lines with a single comma delimiter " +
-                        "separating clue and value are valid and imported", // import [filepath]
-                "Clears all of the flash cards from the deck, including their memorization data", // clear
-                "Resets all of memorization data for every flash card in the deck", // reset
-                "Saves the deck to the associated deck file", // save
-                "Prints the deck's description, tags, and flash cards", // view
-                "Saves and quits the program", // quit
-                "Prompts the user for a new description for the deck", // edit
-                "Removes the tag " + NAME + " from the deck", // remove
-                "Displays the valid commands at this context scope" // help
+                "Prints the deck's description, tags, and flash cards" // view
         };
         final String[] DIR_COMMANDS = {
+                CMD_CREATE + ARG_SEPARATOR + DECK + NAME,
+                CMD_CREATE + ARG_SEPARATOR + DIRECTORY + NAME,
+                CMD_DUE,
                 CMD_GOTO + ARG_SEPARATOR + PARENT_DIR,
                 CMD_GOTO + ARG_SEPARATOR + NAME + OPTIONAL_OPEN +
                         DIR_SEPARATOR + NAME + OPTIONAL_CLOSE + REPEAT,
-                CMD_SET + ARG_SEPARATOR + SETTING_ID + ARG_SEPARATOR + VAL,
-                CMD_SETTINGS,
-                CMD_CREATE + ARG_SEPARATOR + DIRECTORY + NAME,
-                CMD_CREATE + ARG_SEPARATOR + DECK + NAME,
+                CMD_HELP,
                 CMD_LIST,
                 CMD_QUIT,
-                CMD_DUE,
-                CMD_HELP
+                CMD_SET + ARG_SEPARATOR + SETTING_ID + ARG_SEPARATOR + VAL,
+                CMD_SETTINGS
         };
         final String[] DIR_EXPLANATIONS = {
+                "Creates a flash card deck file " + NAME + " in the current directory", // create deck [name]
+                "Creates a child directory " + NAME + " in the current directory", // create dir [name]
+                "Finds all of the decks accessible via this context " +
+                        "with flash cards that are due", // due
                 "Changes the context to the parent directory", // goto ..
                 "Goes to a specified directory or deck file using a " +
                         "sub-path specified from the current directory", // goto [name](/[name])*
-                "Sets setting " + SETTING_ID + " to the value " + VAL, // set [setting_id] [X]
-                "Lists all the program settings and their current values", // settings
-                "Creates a child directory " + NAME + " in the current directory", // create dir [name]
-                "Creates a flash card deck file " + NAME + " in the current directory", // create deck [name]
+                "Displays the valid commands at this context scope", // help
                 "Lists the contents of the current directory", // list
                 "Saves and quits the program", // quit
-                "Finds all of the decks accessible via this context " +
-                        "with flash cards that are due", // due
-                "Displays the valid commands at this context scope" // help
+                "Sets setting " + SETTING_ID + " to the value " + VAL, // set [setting_id] [X]
+                "Lists all the program settings and their current values" // settings
         };
 
         if (ContextManager.getContext() instanceof FFDirectory)
