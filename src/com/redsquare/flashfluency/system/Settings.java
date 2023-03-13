@@ -301,7 +301,7 @@ public class Settings {
             return;
         }
 
-        CLIOutput.writeSettingSet(settingID, value, true);
+        CLIOutput.writeSettingSet(settingID, value, true, true);
     }
 
     public static void printSettings() {
@@ -357,6 +357,6 @@ public class Settings {
 
         for (int i = 0; i < settingIDs.length; i++)
             CLIOutput.writeSettingSet(settingIDs[i], values[i],
-                    i + 1 == settingIDs.length);
+                    i == 0, false);
     }
 }

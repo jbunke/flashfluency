@@ -472,12 +472,14 @@ public class CLIOutput {
 
     public static void writeSettingSet(
             final String settingID, final String value,
-            final boolean subsequentBorderLine
+            final boolean precedingBorderLine,
+            final boolean followingBorderLine
     ) {
-        String s = borderLine() + SETTING_COLOR + "Set " +
+        String s = (precedingBorderLine ? borderLine() : "") +
+                SETTING_COLOR + "Set " +
                 highlightName(settingID, SETTING_COLOR) + " to " +
                 VALUE_HIGHLIGHT_COLOR + value + NEW_LINE +
-                (subsequentBorderLine ? borderLine() : "");
+                (followingBorderLine ? borderLine() : "");
 
         write(s, false);
     }
