@@ -46,7 +46,12 @@ public abstract class FFFile {
                 DirectoryParser.NAME_BOUND + name + DirectoryParser.NAME_BOUND;
     }
 
-    public void getDecksWithDue(Set<FFDeckFile> hasDue) {
+    public void getDecksWithMatchingTags(
+            final Set<FFDeckFile> hasMatchingTags, final String[] tags
+    ) {
+    }
+
+    public void getDecksWithDue(final Set<FFDeckFile> hasDue) {
     }
 
     public static Comparator<FFFile> getComparator(final String flag) {

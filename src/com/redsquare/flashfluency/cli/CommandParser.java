@@ -35,6 +35,7 @@ public class CommandParser {
     private static final String CMD_VIEW = "view"; // DONE
     private static final String CMD_QUIT = "quit"; // DONE
     private static final String CMD_DUE = "due"; // DONE
+    private static final String CMD_HASTAGS = "hastags"; // DONE
 
     private static final String PARENT_DIR = "..";
     private static final String ROOT_DIR = "";
@@ -43,6 +44,7 @@ public class CommandParser {
     private static final String TAG = "tag" + ARG_SEPARATOR;
     private static final String FLASH_CARD = "flashcard";
     private static final String DIR_SEPARATOR = "/";
+    private static final String TAG_SEPARATOR = ",";
     private static final String OPTIONAL_OPEN = "(";
     private static final String OPTIONAL_CLOSE = ")";
     private static final String REPEAT = "*";
@@ -80,6 +82,8 @@ public class CommandParser {
             Settings.printSettings();
         else if (command.startsWith(CMD_DUE))
             parseDirectoryCommand(CLIOutput::writeDecksWithDueCards);
+        else if (command.startsWith(CMD_HASTAGS + ARG_SEPARATOR))
+            parseHastagsCommand(getRemaining(command, CMD_HASTAGS + ARG_SEPARATOR));
         else if (command.startsWith(CMD_GOTO + ARG_SEPARATOR))
             parseGotoCommand(getRemaining(command, CMD_GOTO + ARG_SEPARATOR));
         else if (command.startsWith(CMD_TEST + ARG_SEPARATOR))
@@ -94,6 +98,10 @@ public class CommandParser {
             parseImportCommand(getRemaining(command, CMD_IMPORT + ARG_SEPARATOR));
         else if (command.startsWith(CMD_SET + ARG_SEPARATOR))
             parseSetCommand(getRemaining(command, CMD_SET + ARG_SEPARATOR));
+    }
+
+    private static void parseHastagsCommand(final String remaining) {
+        parseDirectoryCommand(CLIOutput::writeDecksWithMatchingTags, remaining);
     }
 
     private static void parseListCommand(final String remaining) {
@@ -269,6 +277,8 @@ public class CommandParser {
                 CMD_GOTO + ARG_SEPARATOR + PARENT_DIR,
                 CMD_GOTO + ARG_SEPARATOR + NAME + OPTIONAL_OPEN +
                         DIR_SEPARATOR + NAME + OPTIONAL_CLOSE + REPEAT,
+                CMD_HASTAGS + ARG_SEPARATOR + NAME + OPTIONAL_OPEN +
+                        TAG_SEPARATOR + NAME + OPTIONAL_CLOSE + REPEAT,
                 CMD_HELP,
                 CMD_LIST,
                 CMD_QUIT,
@@ -283,6 +293,8 @@ public class CommandParser {
                 "Changes the context to the parent directory", // goto ..
                 "Goes to a specified directory or deck file using a " +
                         "sub-path specified from the current directory", // goto [name](/[name])*
+                "Finds all of the decks accessible via this context " +
+                        "with ALL of the tags in the search", // hastags [name](,[name])*
                 "Displays the valid commands at this context scope", // help
                 "Lists the contents of the current directory", // list
                 "Saves and quits the program", // quit
