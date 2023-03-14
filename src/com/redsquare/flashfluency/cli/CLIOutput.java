@@ -108,7 +108,7 @@ public class CLIOutput {
             if (processed > 0)
                 sb.append(", ");
 
-            sb.append(cardsInPot).append(" in ").append(color).append(pot).append(ANSI_RESET);
+            sb.append(cardsInPot).append("x ").append(color).append(pot).append(ANSI_RESET);
             processed++;
         }
 
