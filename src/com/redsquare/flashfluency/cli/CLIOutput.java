@@ -127,11 +127,13 @@ public class CLIOutput {
                 FlashCard::getClue, FlashCard::getAnswer, x -> x.isIntroduced() ? "Yes" : "No",
                 x -> {
                     LocalDate d = x.getDue();
-
                     return d.getDayOfMonth() + "-" + d.getMonthValue() + "-" + d.getYear();
                 },
                 x -> potColor(x.getPot()) + x.getPot() + ANSI_RESET,
-                x -> String.valueOf(x.getPotCounter())
+                x -> {
+                    final int counter = x.getPotCounter();
+                    return counter > 0 ? String.valueOf(counter) : "N/A";
+                }
         );
 
         final int[] SPACES = new int[6];

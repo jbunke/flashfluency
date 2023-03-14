@@ -29,7 +29,7 @@
 		"vocab"->[
 			"books"->[
 				"harry potter"->[
-					"3 e o prisoneiro de azkaban"->[
+					"3 azkaban"->[
 						"chapter 1",
 						"chapter 2"
 					]
