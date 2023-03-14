@@ -148,8 +148,6 @@ public class Deck {
     }
 
     public void importCards(String filepath) {
-        System.out.println(File.separator);
-
         filepath = filepath.replace("/", File.separator).replace("\\", File.separator);
 
         try {
