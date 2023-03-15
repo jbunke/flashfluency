@@ -55,7 +55,7 @@ public class FlashFluencyLogicException extends FlashFluencyException {
 
     public static FlashFluencyLogicException deckFilesHaveNoChildren() {
         return new FlashFluencyLogicException(
-                "This context is a deck file; deck files have no children.",
+                "This context is a deck file, not a directory; deck files have no children.",
                 false, CONSEQUENCE_COMMAND_NOT_EXECUTED
         );
     }

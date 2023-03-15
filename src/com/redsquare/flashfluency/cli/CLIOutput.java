@@ -5,6 +5,7 @@ import com.redsquare.flashfluency.system.FFDeckFile;
 import com.redsquare.flashfluency.system.FFDirectory;
 import com.redsquare.flashfluency.system.FFFile;
 import com.redsquare.flashfluency.system.Settings;
+import com.redsquare.flashfluency.system.exceptions.FlashFluencyLogicException;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -612,6 +613,78 @@ public class CLIOutput {
                 " to the deck";
 
         write(s, true);
+    }
+
+    public static void writeBurrowingSequence(final FFDirectory currentDirectory) {
+        FFFile context = ContextManager.getContext();
+
+        // Sanity check
+        if (!context.equals(currentDirectory)) {
+            ExceptionMessenger.deliver(
+                    "The current context is not the expected directory.",
+                    false, FlashFluencyLogicException.CONSEQUENCE_COMMAND_NOT_EXECUTED
+            );
+            return;
+        }
+
+        // Header
+        write(borderLine(), false);
+
+        // Burrowing logic
+        final String NONE = "";
+
+        while (context instanceof FFDirectory directory && directory.getChildrenNames().size() == 1) {
+            String nestedName = NONE;
+
+            for (String childName : directory.getChildrenNames())
+                nestedName = childName;
+
+            ContextManager.setContextToChild(nestedName);
+            context = ContextManager.getContext();
+
+            CLIOutput.writeBurrowNotification(
+                    context.getName(), context instanceof FFDeckFile
+            );
+        }
+
+        // Postmortem termination cases and messages
+        if (context instanceof FFDirectory directory) {
+            final int numChildren = directory.getChildrenNames().size();
+
+            if (numChildren == 0)
+                CLIOutput.writeBurrowTermination(
+                        directory.getName(), false, " has no child to nest into"
+                );
+            else
+                CLIOutput.writeBurrowTermination(
+                        directory.getName(), false, " has multiple paths to choose from"
+                );
+        } else if (context instanceof FFDeckFile deckFile) {
+            CLIOutput.writeBurrowTermination(
+                    deckFile.getName(), true, " is a deck and thus a terminus"
+            );
+        }
+    }
+
+    private static void writeBurrowNotification(
+            final String contextName, final boolean isDeck
+    ) {
+        final String color = isDeck ? DECK_COLOR : DIRECTORY_COLOR;
+        String s = color + "Burrowed into " +
+                (isDeck ? "deck " : "directory ") +
+                highlightName(contextName, color) + ".";
+        write(s, true);
+    }
+
+    private static void writeBurrowTermination(
+            final String contextName, final boolean isDeck, final String reason
+    ) {
+        final String color = isDeck ? DECK_COLOR : DIRECTORY_COLOR;
+        String s = color + "The " + (isDeck ? "deck " : "directory ") +
+                highlightName(contextName, color) + reason +
+                ", so the burrowing process has terminated." + NEW_LINE +
+                borderLine();
+        write(s, false);
     }
 
     public static void writeSetRootDirectoryPrompt() {

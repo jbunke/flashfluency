@@ -36,6 +36,7 @@ public class CommandParser {
     private static final String CMD_QUIT = "quit"; // DONE
     private static final String CMD_DUE = "due"; // DONE
     private static final String CMD_HASTAGS = "hastags"; // DONE
+    private static final String CMD_BURROW = "burrow"; // DONE
 
     private static final String PARENT_DIR = "..";
     private static final String ROOT_DIR = "";
@@ -82,6 +83,8 @@ public class CommandParser {
             Settings.printSettings();
         else if (command.startsWith(CMD_DUE))
             parseDirectoryCommand(CLIOutput::writeDecksWithDueCards);
+        else if (command.startsWith(CMD_BURROW))
+            parseDirectoryCommand(CLIOutput::writeBurrowingSequence);
         else if (command.startsWith(CMD_HASTAGS + ARG_SEPARATOR))
             parseHastagsCommand(getRemaining(command, CMD_HASTAGS + ARG_SEPARATOR));
         else if (command.startsWith(CMD_GOTO + ARG_SEPARATOR))
@@ -271,6 +274,7 @@ public class CommandParser {
                 "Prints the deck's description, tags, and flash cards" // view
         };
         final String[] DIR_COMMANDS = {
+                CMD_BURROW,
                 CMD_CREATE + ARG_SEPARATOR + DECK + NAME,
                 CMD_CREATE + ARG_SEPARATOR + DIRECTORY + NAME,
                 CMD_DUE,
@@ -286,6 +290,8 @@ public class CommandParser {
                 CMD_SETTINGS
         };
         final String[] DIR_EXPLANATIONS = {
+                "\"Burrows\" deeper within the current directory path until a fork " +
+                        "or terminus is reached", // burrow
                 "Creates a flash card deck file " + NAME + " in the current directory", // create deck [name]
                 "Creates a child directory " + NAME + " in the current directory", // create dir [name]
                 "Finds all of the decks accessible via this context " +
