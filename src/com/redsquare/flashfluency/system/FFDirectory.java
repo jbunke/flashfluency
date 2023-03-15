@@ -1,5 +1,8 @@
 package com.redsquare.flashfluency.system;
 
+import com.redsquare.flashfluency.cli.ExceptionMessenger;
+import com.redsquare.flashfluency.system.exceptions.FlashFluencyLogicException;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -21,6 +24,29 @@ public class FFDirectory extends FFFile {
         return create(Settings.ROOT_CODE, null);
     }
 
+    @Override
+    public boolean moveTo(final FFDirectory destination) {
+        if (this.isAncestorOf(destination)) {
+            ExceptionMessenger.deliver(
+                    "A directory cannot be moved to one of its own descendants.",
+                    false,
+                    FlashFluencyLogicException.CONSEQUENCE_COMMAND_NOT_EXECUTED
+            );
+            return false;
+        }
+
+        if (destination.equals(getParent())) {
+            ExceptionMessenger.deliver(
+                    "The file was already in the specified destination.",
+                    false,
+                    FlashFluencyLogicException.CONSEQUENCE_COMMAND_NOT_EXECUTED
+            );
+            return false;
+        }
+
+        return setParent(destination);
+    }
+
     public void addDeck(String name) {
         children.put(name, FFDeckFile.create(name, this));
     }
@@ -30,6 +56,21 @@ public class FFDirectory extends FFFile {
         return (FFDeckFile) getChild(name);
     }
 
+    public boolean addExistingChild(final FFFile child) {
+        try {
+            if (getChildrenNames().contains(child.getName()))
+                throw FlashFluencyLogicException.directoryAlreadyHasChildOfThisName(
+                        child.getName());
+
+            children.put(child.getName(), child);
+            return true;
+        } catch (FlashFluencyLogicException e) {
+            ExceptionMessenger.deliver(e);
+        }
+
+        return false;
+    }
+
     public void addChildDirectory(String name) {
         children.put(name, FFDirectory.create(name, this));
     }
@@ -37,6 +78,19 @@ public class FFDirectory extends FFFile {
     public FFDirectory addChildDirectoryR(String name) {
         addChildDirectory(name);
         return (FFDirectory) getChild(name);
+    }
+
+    public void removeChild(String name) {
+        children.remove(name);
+    }
+
+    public boolean isAncestorOf(final FFFile file) {
+        if (this.equals(file.getParent()))
+            return true;
+        else if (file.getParent() == null)
+            return false;
+        else
+            return isAncestorOf(file.getParent());
     }
 
     public boolean hasChild(String name) {

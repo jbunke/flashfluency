@@ -687,6 +687,22 @@ public class CLIOutput {
         write(s, false);
     }
 
+    public static void writeMoveTo(
+            final boolean success, final boolean isDeck,
+            final String name, final String filepath
+    ) {
+        final String color = isDeck ? DECK_COLOR : DIRECTORY_COLOR;
+
+        String s = borderLine() + color + "The " + (isDeck ? "deck " : "directory ") +
+                highlightName(name, color) +
+                (success
+                        ? (" was moved to " + filepath)
+                        : " could not be moved.") +
+                NEW_LINE + borderLine();
+
+        write(s, false);
+    }
+
     public static void writeSetRootDirectoryPrompt() {
         String s = DIRECTORY_COLOR + "Set root directory: ";
         write(s, false);

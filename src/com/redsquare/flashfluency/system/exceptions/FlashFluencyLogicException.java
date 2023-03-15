@@ -19,6 +19,15 @@ public class FlashFluencyLogicException extends FlashFluencyException {
         );
     }
 
+    public static FlashFluencyLogicException directoryAlreadyHasChildOfThisName(
+            final String name
+    ) {
+        return new FlashFluencyLogicException(
+                "This directory already has a child of the name \"" +
+                        name +"\".", false, CONSEQUENCE_COMMAND_NOT_EXECUTED
+        );
+    }
+
     public static FlashFluencyLogicException invalidArgumentName() {
         return new FlashFluencyLogicException(
                 "The command contained an invalid argument.",

@@ -6,7 +6,7 @@ import java.util.Set;
 
 public abstract class FFFile {
     private final String name;
-    private final FFDirectory parent;
+    private FFDirectory parent;
 
     private static final Comparator<FFFile> ALPHABETICAL_COMPARATOR =
             Comparator.comparing(FFFile::getName);
@@ -27,6 +27,8 @@ public abstract class FFFile {
     public FFDirectory getParent() {
         return parent;
     }
+
+    public abstract boolean moveTo(final FFDirectory destination);
 
     public String getFilepath() {
         if (name.equals(Settings.ROOT_CODE))
@@ -75,6 +77,23 @@ public abstract class FFFile {
 
             return 0;
         };
+    }
+
+    protected boolean setParent(final FFDirectory parent) {
+        final FFDirectory insurance = this.parent;
+
+        if (this.parent != null)
+            this.parent.removeChild(name);
+
+        this.parent = parent;
+        boolean success = parent.addExistingChild(this);
+
+        if (!success && insurance != null) {
+            this.parent = insurance;
+            insurance.addExistingChild(this);
+        }
+
+        return success;
     }
 
     @Override

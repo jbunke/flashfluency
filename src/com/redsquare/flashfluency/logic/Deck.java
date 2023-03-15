@@ -14,7 +14,7 @@ public class Deck {
     public static final String TAG_IRREVERSIBLE = "irreversible", TAG_STRICT = "strict";
 
     private final String name;
-    private final String filepath;
+    private String filepath;
 
     private String description;
     private final Set<String> tags;
@@ -37,6 +37,20 @@ public class Deck {
 
     public static Deck createNew(String name, String filepath) {
         return new Deck(name, filepath, "", new HashSet<>(), new HashMap<>());
+    }
+
+    public void updateFilepath(final String filepath) {
+        // TODO: IMPORTANT! Once the file is moved, it has to be deleted from the system directory at its previous location!
+
+        this.filepath = filepath;
+
+        try {
+            saveToFile();
+        } catch (IOException e) {
+            ExceptionMessenger.deliver(
+                    FFErrorMessages.MESSAGE_FAILED_WRITE_TO_DECK_FILE,
+                    false, FFErrorMessages.CONSEQUENCE_DECK_DATA_NOT_SAVED);
+        }
     }
 
     public void addFlashCard(final FlashCard flashCard) {

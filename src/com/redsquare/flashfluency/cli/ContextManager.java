@@ -90,6 +90,10 @@ public class ContextManager {
         }
     }
 
+    public static void setContextManually(FFFile file) {
+        context = file;
+    }
+
     public static void lessonStarted() {
         inLesson = true;
     }
