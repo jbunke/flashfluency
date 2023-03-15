@@ -1,5 +1,8 @@
 package com.redsquare.flashfluency.system;
 
+import com.redsquare.flashfluency.cli.ExceptionMessenger;
+import com.redsquare.flashfluency.system.exceptions.FlashFluencyLogicException;
+
 import java.io.File;
 import java.util.Comparator;
 import java.util.Set;
@@ -28,12 +31,34 @@ public abstract class FFFile {
         return parent;
     }
 
-    public abstract boolean moveTo(final FFDirectory destination);
+    public boolean moveTo(final FFDirectory destination) {
+        if (destination.equals(getParent())) {
+            ExceptionMessenger.deliver(
+                    "The file was already in the specified destination.",
+                    false,
+                    FlashFluencyLogicException.CONSEQUENCE_COMMAND_NOT_EXECUTED
+            );
+            return false;
+        }
+
+        boolean success = setParent(destination);
+
+        if (success)
+            updateFileSystem();
+
+        return success;
+    }
 
     public void delete() {
+        final String oldFilepath = getFilepath();
+
         parent.removeChild(name);
         parent = null;
+
+        FileIOHelper.deleteFileFootprintFromSystem(oldFilepath);
     }
+
+    public abstract void updateFileSystem();
 
     public String getFilepath() {
         if (name.equals(Settings.ROOT_CODE))

@@ -35,16 +35,21 @@ public class FFDirectory extends FFFile {
             return false;
         }
 
-        if (destination.equals(getParent())) {
-            ExceptionMessenger.deliver(
-                    "The file was already in the specified destination.",
-                    false,
-                    FlashFluencyLogicException.CONSEQUENCE_COMMAND_NOT_EXECUTED
-            );
-            return false;
-        }
+        return super.moveTo(destination);
+    }
 
-        return setParent(destination);
+    @Override
+    public void delete() {
+        for (String child : getChildrenNames())
+            children.get(child).delete();
+
+        super.delete();
+    }
+
+    @Override
+    public void updateFileSystem() {
+        for (String child : children.keySet())
+            children.get(child).updateFileSystem();
     }
 
     public void addDeck(String name) {

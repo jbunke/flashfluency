@@ -3,6 +3,7 @@ package com.redsquare.flashfluency.logic;
 import com.redsquare.flashfluency.cli.CLIOutput;
 import com.redsquare.flashfluency.cli.ExceptionMessenger;
 import com.redsquare.flashfluency.system.DeckFileParser;
+import com.redsquare.flashfluency.system.FileIOHelper;
 import com.redsquare.flashfluency.system.Settings;
 import com.redsquare.flashfluency.system.exceptions.FFErrorMessages;
 
@@ -40,11 +41,14 @@ public class Deck {
     }
 
     public void updateFilepath(final String filepath) {
-        // TODO: IMPORTANT! Once the file is moved, it has to be deleted from the system directory at its previous location!
+        // delete the old file
+        FileIOHelper.deleteFileFootprintFromSystem(this.filepath);
 
+        // set correct filepath
         this.filepath = filepath;
 
         try {
+            // save to new location
             saveToFile();
         } catch (IOException e) {
             ExceptionMessenger.deliver(
