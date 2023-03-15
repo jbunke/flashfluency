@@ -38,6 +38,13 @@ public class FFDeckFile extends FFFile {
         return setParent(destination);
     }
 
+    @Override
+    public void delete() {
+        super.delete();
+
+        // TODO - delete file in system directory
+    }
+
     public void setAssociatedDeck(Deck deck) {
         associatedDeck = deck;
     }

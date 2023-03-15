@@ -66,7 +66,7 @@ public class ContextManager {
             FFDirectory parent = context.getParent();
 
             if (parent == null)
-                throw FlashFluencyLogicException.cantGoBackFromRootDirectory();
+                throw FlashFluencyLogicException.manipulateRootDirectory();
 
             context = parent;
         } catch (FlashFluencyLogicException e) {

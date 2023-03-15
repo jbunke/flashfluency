@@ -725,4 +725,29 @@ public class CLIOutput {
     private static String highlightName(final String name, final String revertColor) {
         return NAME_HIGHLIGHT_COLOR + name + revertColor;
     }
+
+    public static void writeDeleteAreYouSurePrompt(
+            final String name, final boolean isDeck, final String typeToDelete
+    ) {
+        final String color = isDeck ? DECK_COLOR : DIRECTORY_COLOR;
+
+        String s = color + "Are you sure you want to delete the " +
+                (isDeck ? "deck " : "directory ") + highlightName(name, color) +
+                "? Type " + ANSI_RED_BOLD + typeToDelete + color + " to delete: ";
+
+        write(s, false);
+    }
+
+    public static void writeFileDeletedNotification(
+            final String name, final boolean isDeck, final boolean deleted
+    ) {
+        final String color = isDeck ? DECK_COLOR : DIRECTORY_COLOR;
+
+        String s = borderLine() + color + "The " +
+                (isDeck ? "deck " : "directory ") +
+                highlightName(name, color) + " was " +
+                (deleted ? "" : "not ") + "deleted." +
+                NEW_LINE + borderLine();
+        write(s, false);
+    }
 }

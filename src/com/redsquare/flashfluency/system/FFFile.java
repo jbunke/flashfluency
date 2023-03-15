@@ -1,5 +1,7 @@
 package com.redsquare.flashfluency.system;
 
+import com.redsquare.flashfluency.cli.ContextManager;
+
 import java.io.File;
 import java.util.Comparator;
 import java.util.Set;
@@ -29,6 +31,13 @@ public abstract class FFFile {
     }
 
     public abstract boolean moveTo(final FFDirectory destination);
+
+    public void delete() {
+        ContextManager.setContextToParent();
+
+        parent.removeChild(name);
+        parent = null;
+    }
 
     public String getFilepath() {
         if (name.equals(Settings.ROOT_CODE))

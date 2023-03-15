@@ -39,6 +39,7 @@ public class CommandParser {
     private static final String CMD_HASTAGS = "hastags"; // DONE
     private static final String CMD_BURROW = "burrow"; // DONE
     private static final String CMD_MOVETO = "moveto"; // DONE
+    private static final String CMD_DELETE = "delete"; // DONE
 
     private static final String PARENT_DIR = "..";
     private static final String ROOT_DIR = "";
@@ -81,6 +82,8 @@ public class CommandParser {
             parseDeckCommand(Deck::saveDeck);
         else if (command.startsWith(CMD_EDIT))
             parseEditCommand();
+        else if (command.startsWith(CMD_DELETE))
+            parseDeleteCommand();
         else if (command.startsWith(CMD_SETTINGS))
             Settings.printSettings();
         else if (command.startsWith(CMD_DUE))
@@ -125,6 +128,30 @@ public class CommandParser {
         }
 
         // TODO: consider adding remove flash card functionality
+    }
+
+    private static void parseDeleteCommand() {
+        final String typeToDelete = "YES";
+        final FFFile toDelete = ContextManager.getContext();
+        final boolean isDeck = toDelete instanceof FFDeckFile;
+
+        CLIOutput.writeDeleteAreYouSurePrompt(toDelete.getName(), isDeck, typeToDelete);
+        String answer = CLIInput.readInput().trim().toUpperCase();
+
+        if (answer.equals(typeToDelete)) {
+            try {
+                if (toDelete.equals(Settings.getRootDirectory()))
+                    throw FlashFluencyLogicException.manipulateRootDirectory();
+
+                toDelete.delete();
+            } catch (FlashFluencyLogicException e) {
+                ExceptionMessenger.deliver(e);
+                return;
+            }
+        }
+
+        CLIOutput.writeFileDeletedNotification(
+                toDelete.getName(), isDeck, answer.equals(typeToDelete));
     }
 
     private static void parseEditCommand() {
@@ -225,7 +252,7 @@ public class CommandParser {
 
         try {
             if (sourceContext.equals(Settings.getRootDirectory()))
-                throw FlashFluencyLogicException.cantGoBackFromRootDirectory();
+                throw FlashFluencyLogicException.manipulateRootDirectory();
         } catch (FlashFluencyLogicException e) {
             ExceptionMessenger.deliver(e);
             return;
@@ -278,6 +305,7 @@ public class CommandParser {
                 CMD_ADD + ARG_SEPARATOR + FLASH_CARD,
                 CMD_ADD + ARG_SEPARATOR + TAG + NAME,
                 CMD_CLEAR,
+                CMD_DELETE,
                 CMD_EDIT,
                 CMD_GOTO + ARG_SEPARATOR + PARENT_DIR,
                 CMD_HELP,
@@ -299,6 +327,7 @@ public class CommandParser {
                 "Adds a new flash card to the deck and prompts the user to pass in a clue and answer", // add flashcard
                 "Adds tag " + NAME + " to the current deck", // add tag [name]
                 "Clears all of the flash cards from the deck, including their memorization data", // clear
+                "Deletes the deck - THIS CANNOT BE UNDONE", // delete
                 "Prompts the user for a new description for the deck", // edit
                 "Changes the context to the deck's parent directory", // goto ..
                 "Displays the valid commands at this context scope", // help
@@ -325,6 +354,7 @@ public class CommandParser {
                 CMD_BURROW,
                 CMD_CREATE + ARG_SEPARATOR + DECK + NAME,
                 CMD_CREATE + ARG_SEPARATOR + DIRECTORY + NAME,
+                CMD_DELETE,
                 CMD_DUE,
                 CMD_GOTO + ARG_SEPARATOR + PARENT_DIR,
                 CMD_GOTO + ARG_SEPARATOR + NAME + OPTIONAL_OPEN +
@@ -344,6 +374,7 @@ public class CommandParser {
                         "or terminus is reached", // burrow
                 "Creates a flash card deck file " + NAME + " in the current directory", // create deck [name]
                 "Creates a child directory " + NAME + " in the current directory", // create dir [name]
+                "Deletes the directory and its subdirectories and decks - THIS CANNOT BE UNDONE", // delete
                 "Finds all of the decks accessible via this context " +
                         "with flash cards that are due", // due
                 "Changes the context to the parent directory", // goto ..
