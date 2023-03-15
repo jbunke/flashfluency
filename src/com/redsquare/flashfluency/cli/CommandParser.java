@@ -143,6 +143,7 @@ public class CommandParser {
                 if (toDelete.equals(Settings.getRootDirectory()))
                     throw FlashFluencyLogicException.manipulateRootDirectory();
 
+                ContextManager.setContextToParent();
                 toDelete.delete();
             } catch (FlashFluencyLogicException e) {
                 ExceptionMessenger.deliver(e);
