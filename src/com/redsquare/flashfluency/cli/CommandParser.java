@@ -40,24 +40,15 @@ public class CommandParser {
     private static final String CMD_BURROW = "burrow"; // DONE
     private static final String CMD_MOVETO = "moveto"; // DONE
     private static final String CMD_DELETE = "delete"; // DONE
+    private static final String CMD_TREE = "tree"; // DONE
 
-    private static final String PARENT_DIR = "..";
-    private static final String ROOT_DIR = "";
-    private static final String ALL = "all";
-    private static final String SUBSET = "subset" + ARG_SEPARATOR;
-    private static final String TAG = "tag" + ARG_SEPARATOR;
-    private static final String FLASH_CARD = "flashcard";
-    private static final String DIR_SEPARATOR = "/";
-    private static final String TAG_SEPARATOR = ",";
-    private static final String OPTIONAL_OPEN = "(";
-    private static final String OPTIONAL_CLOSE = ")";
-    private static final String REPEAT = "*";
-    private static final String VAL = "[X]";
-    private static final String NAME = "[name]";
-    private static final String SETTING_ID = "[setting_id]";
-    private static final String FILEPATH = "[filepath]";
-    private static final String DECK = "deck" + ARG_SEPARATOR;
-    private static final String DIRECTORY = "dir" + ARG_SEPARATOR;
+    private static final String PARENT_DIR = "..", ROOT_DIR = "", ALL = "all",
+            SUBSET = "subset" + ARG_SEPARATOR, TAG = "tag" + ARG_SEPARATOR,
+            FLASH_CARD = "flashcard", DIR_SEPARATOR = "/",
+            TAG_SEPARATOR = ",", OPTIONAL_OPEN = "(", OPTIONAL_CLOSE = ")",
+            REPEAT = "*", VAL = "[X]", NAME = "[name]",
+            SETTING_ID = "[setting_id]", FILEPATH = "[filepath]",
+            DECK = "deck" + ARG_SEPARATOR, DIRECTORY = "dir" + ARG_SEPARATOR;
 
     public static void parse(String command) {
         if (command.startsWith(CMD_LEARN))
@@ -88,6 +79,8 @@ public class CommandParser {
             Settings.printSettings();
         else if (command.startsWith(CMD_DUE))
             parseDirectoryCommand(CLIOutput::writeDecksWithDueCards);
+        else if (command.startsWith(CMD_TREE))
+            parseDirectoryCommand(CLIOutput::writeDirectoryTree);
         else if (command.startsWith(CMD_BURROW))
             parseDirectoryCommand(CLIOutput::writeBurrowingSequence);
         else if (command.startsWith(CMD_MOVETO + ARG_SEPARATOR))
@@ -368,7 +361,8 @@ public class CommandParser {
                         DIR_SEPARATOR + NAME + OPTIONAL_CLOSE + REPEAT,
                 CMD_QUIT,
                 CMD_SET + ARG_SEPARATOR + SETTING_ID + ARG_SEPARATOR + VAL,
-                CMD_SETTINGS
+                CMD_SETTINGS,
+                CMD_TREE
         };
         final String[] DIR_EXPLANATIONS = {
                 "\"Burrows\" deeper within the current directory path until a fork " +
@@ -389,7 +383,8 @@ public class CommandParser {
                         "to the destination specified by the path (relative or full).", // moveto [name](/[name])*
                 "Saves and quits the program", // quit
                 "Sets setting " + SETTING_ID + " to the value " + VAL, // set [setting_id] [X]
-                "Lists all the program settings and their current values" // settings
+                "Lists all the program settings and their current values", // settings
+                "Displays the content sub-tree accessible from the current directory" // tree
         };
 
         if (ContextManager.getContext() instanceof FFDirectory)

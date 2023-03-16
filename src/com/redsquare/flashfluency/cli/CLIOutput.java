@@ -13,7 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class CLIOutput {
-    private static final String EMPTY = "";
+    private static final String EMPTY = "", INDENT = "    ", HIERARCHY_ARROW = "|-> ";
     private static final String NEW_LINE = "\n";
 
     private static final int BORDER_TICK_NUM = 50;
@@ -241,6 +241,40 @@ public class CLIOutput {
         sb.append(borderLine());
 
         write(sb.toString(), false);
+    }
+
+    public static void writeDirectoryTree(final FFDirectory directory) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(borderLine());
+        sb.append(DIRECTORY_COLOR)
+                .append("Content sub-tree from directory ")
+                .append(highlightName(directory.getName(), DIRECTORY_COLOR))
+                .append(":").append(NEW_LINE);
+        sb.append(borderLine());
+
+        formatTreeNode(sb, directory, 0);
+
+        sb.append(borderLine());
+
+        write(sb.toString(), false);
+    }
+
+    private static void formatTreeNode(
+            final StringBuilder sb, final FFFile node, final int depthLevel
+    ) {
+        sb.append(ANSI_RESET);
+
+        if (depthLevel > 0)
+            sb.append(INDENT.repeat(depthLevel - 1)).append(HIERARCHY_ARROW);
+
+        if (node instanceof FFDeckFile deckFile)
+            sb.append(deckInLine(deckFile.getAssociatedDeck())).append(NEW_LINE);
+        else if (node instanceof FFDirectory directory) {
+            sb.append(DIRECTORY_COLOR).append(directory.getName()).append(NEW_LINE);
+
+            for (String child : directory.getChildrenNames())
+                formatTreeNode(sb, directory.getChild(child), depthLevel + 1);
+        }
     }
 
     public static void writeDecksWithDueCards(final FFDirectory directory) {
