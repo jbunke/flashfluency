@@ -13,7 +13,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class CLIOutput {
-    private static final String EMPTY = "", INDENT = "    ", HIERARCHY_ARROW = "|-> ";
+    private static final String EMPTY = "", INDENT = "    ",
+            INDENT_WITH_ARROW = "|   ", HIERARCHY_ARROW = "|-> ";
     private static final String NEW_LINE = "\n";
 
     private static final int BORDER_TICK_NUM = 50;
@@ -252,7 +253,7 @@ public class CLIOutput {
                 .append(":").append(NEW_LINE);
         sb.append(borderLine());
 
-        formatTreeNode(sb, directory, 0);
+        formatTreeNode(sb, directory, new boolean[] {});
 
         sb.append(borderLine());
 
@@ -260,20 +261,34 @@ public class CLIOutput {
     }
 
     private static void formatTreeNode(
-            final StringBuilder sb, final FFFile node, final int depthLevel
+            final StringBuilder sb, final FFFile node,
+            final boolean[] depthRankArray
     ) {
         sb.append(ANSI_RESET);
 
-        if (depthLevel > 0)
-            sb.append(INDENT.repeat(depthLevel - 1)).append(HIERARCHY_ARROW);
+        if (depthRankArray.length > 0) {
+            for (int i = 1; i < depthRankArray.length; i++)
+                sb.append(depthRankArray[i - 1] ? INDENT : INDENT_WITH_ARROW);
+
+            sb.append(HIERARCHY_ARROW);
+        }
 
         if (node instanceof FFDeckFile deckFile)
             sb.append(deckInLine(deckFile.getAssociatedDeck())).append(NEW_LINE);
         else if (node instanceof FFDirectory directory) {
             sb.append(DIRECTORY_COLOR).append(directory.getName()).append(NEW_LINE);
 
-            for (String child : directory.getChildrenNames())
-                formatTreeNode(sb, directory.getChild(child), depthLevel + 1);
+            List<String> children = directory.getChildrenNames().stream().toList();
+
+            for (int i = 0; i < children.size(); i++) {
+                final boolean[] newDepthRankArray = new boolean[depthRankArray.length + 1];
+                System.arraycopy(depthRankArray, 0, newDepthRankArray, 0, depthRankArray.length);
+
+                final boolean isLastRankForDepth = i + 1 == children.size();
+                newDepthRankArray[depthRankArray.length] = isLastRankForDepth;
+
+                formatTreeNode(sb, directory.getChild(children.get(i)), newDepthRankArray);
+            }
         }
     }
 

@@ -43,6 +43,13 @@
 				"qualifiers",
 				"nouns",
 				"exercise 1"
+			],
+			"chapter 2"->[
+				"unemphatic subject pronouns",
+				"misc vocab",
+				"sentences",
+				"verbs",
+				"exercise 2"
 			]
 		],
 		"yoruba ye mi"->[
