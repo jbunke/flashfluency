@@ -18,6 +18,11 @@ public class FFDeckFile extends FFFile {
         return new FFDeckFile(name, parent);
     }
 
+    @Override
+    public void updateFileSystem() {
+        associatedDeck.updateFilepath(getFilepath());
+    }
+
     public void setAssociatedDeck(Deck deck) {
         associatedDeck = deck;
     }

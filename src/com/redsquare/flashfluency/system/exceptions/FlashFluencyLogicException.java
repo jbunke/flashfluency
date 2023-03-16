@@ -19,6 +19,15 @@ public class FlashFluencyLogicException extends FlashFluencyException {
         );
     }
 
+    public static FlashFluencyLogicException directoryAlreadyHasChildOfThisName(
+            final String name
+    ) {
+        return new FlashFluencyLogicException(
+                "This directory already has a child of the name \"" +
+                        name +"\".", false, CONSEQUENCE_COMMAND_NOT_EXECUTED
+        );
+    }
+
     public static FlashFluencyLogicException invalidArgumentName() {
         return new FlashFluencyLogicException(
                 "The command contained an invalid argument.",
@@ -55,14 +64,14 @@ public class FlashFluencyLogicException extends FlashFluencyException {
 
     public static FlashFluencyLogicException deckFilesHaveNoChildren() {
         return new FlashFluencyLogicException(
-                "This context is a deck file; deck files have no children.",
+                "This context is a deck file, not a directory; deck files have no children.",
                 false, CONSEQUENCE_COMMAND_NOT_EXECUTED
         );
     }
 
-    public static FlashFluencyLogicException cantGoBackFromRootDirectory() {
+    public static FlashFluencyLogicException manipulateRootDirectory() {
         return new FlashFluencyLogicException(
-                "The current context is the root directory; the scope of this program is limited to this folder.",
+                "The current context is the root directory; this action cannot be performed here.",
                 false, CONSEQUENCE_COMMAND_NOT_EXECUTED
         );
     }

@@ -1,8 +1,11 @@
 "(root)"->[
 	"de"->[
 		"vocab"->[
-			"books"->[],
-			"video"->[]
+			"books"->[
+				"verwandlung"->[
+					"chapter 1"
+				]
+			]
 		]
 	],
 	"pt"->[
@@ -19,11 +22,6 @@
 				"poder",
 				"querer",
 				"vir"
-			],
-			"regular"->[
-				"ar"->[],
-				"ir"->[],
-				"er"->[]
 			]
 		],
 		"vocab"->[
@@ -39,8 +37,12 @@
 	],
 	"yo"->[
 		"teach yourself yoruba"->[
-			"intro"->[
-				"pronunciation distinction"
+			"chapter 1"->[
+				"statement verbs",
+				"sentences",
+				"qualifiers",
+				"nouns",
+				"exercise 1"
 			]
 		],
 		"yoruba ye mi"->[
@@ -48,10 +50,7 @@
 				"vocabulary",
 				"subject pronouns",
 				"verbs"
-			],
-			"intro"->[]
-		],
-		"curated"->[]
-	],
-	"es"->[]
+			]
+		]
+	]
 ]

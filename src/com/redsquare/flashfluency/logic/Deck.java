@@ -3,6 +3,7 @@ package com.redsquare.flashfluency.logic;
 import com.redsquare.flashfluency.cli.CLIOutput;
 import com.redsquare.flashfluency.cli.ExceptionMessenger;
 import com.redsquare.flashfluency.system.DeckFileParser;
+import com.redsquare.flashfluency.system.FileIOHelper;
 import com.redsquare.flashfluency.system.Settings;
 import com.redsquare.flashfluency.system.exceptions.FFErrorMessages;
 
@@ -14,7 +15,7 @@ public class Deck {
     public static final String TAG_IRREVERSIBLE = "irreversible", TAG_STRICT = "strict";
 
     private final String name;
-    private final String filepath;
+    private String filepath;
 
     private String description;
     private final Set<String> tags;
@@ -37,6 +38,23 @@ public class Deck {
 
     public static Deck createNew(String name, String filepath) {
         return new Deck(name, filepath, "", new HashSet<>(), new HashMap<>());
+    }
+
+    public void updateFilepath(final String filepath) {
+        // delete the old file
+        FileIOHelper.deleteFileFootprintFromSystem(this.filepath);
+
+        // set correct filepath
+        this.filepath = filepath;
+
+        try {
+            // save to new location
+            saveToFile();
+        } catch (IOException e) {
+            ExceptionMessenger.deliver(
+                    FFErrorMessages.MESSAGE_FAILED_WRITE_TO_DECK_FILE,
+                    false, FFErrorMessages.CONSEQUENCE_DECK_DATA_NOT_SAVED);
+        }
     }
 
     public void addFlashCard(final FlashCard flashCard) {

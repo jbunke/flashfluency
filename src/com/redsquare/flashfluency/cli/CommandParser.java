@@ -5,6 +5,7 @@ import com.redsquare.flashfluency.logic.FlashCard;
 import com.redsquare.flashfluency.logic.Lesson;
 import com.redsquare.flashfluency.system.FFDeckFile;
 import com.redsquare.flashfluency.system.FFDirectory;
+import com.redsquare.flashfluency.system.FFFile;
 import com.redsquare.flashfluency.system.Settings;
 import com.redsquare.flashfluency.system.exceptions.FlashFluencyLogicException;
 import com.redsquare.flashfluency.system.exceptions.InvalidDeckFileFormatException;
@@ -36,24 +37,18 @@ public class CommandParser {
     private static final String CMD_QUIT = "quit"; // DONE
     private static final String CMD_DUE = "due"; // DONE
     private static final String CMD_HASTAGS = "hastags"; // DONE
+    private static final String CMD_BURROW = "burrow"; // DONE
+    private static final String CMD_MOVETO = "moveto"; // DONE
+    private static final String CMD_DELETE = "delete"; // DONE
+    private static final String CMD_TREE = "tree"; // DONE
 
-    private static final String PARENT_DIR = "..";
-    private static final String ROOT_DIR = "";
-    private static final String ALL = "all";
-    private static final String SUBSET = "subset" + ARG_SEPARATOR;
-    private static final String TAG = "tag" + ARG_SEPARATOR;
-    private static final String FLASH_CARD = "flashcard";
-    private static final String DIR_SEPARATOR = "/";
-    private static final String TAG_SEPARATOR = ",";
-    private static final String OPTIONAL_OPEN = "(";
-    private static final String OPTIONAL_CLOSE = ")";
-    private static final String REPEAT = "*";
-    private static final String VAL = "[X]";
-    private static final String NAME = "[name]";
-    private static final String SETTING_ID = "[setting_id]";
-    private static final String FILEPATH = "[filepath]";
-    private static final String DECK = "deck" + ARG_SEPARATOR;
-    private static final String DIRECTORY = "dir" + ARG_SEPARATOR;
+    private static final String PARENT_DIR = "..", ROOT_DIR = "", ALL = "all",
+            SUBSET = "subset" + ARG_SEPARATOR, TAG = "tag" + ARG_SEPARATOR,
+            FLASH_CARD = "flashcard", DIR_SEPARATOR = "/",
+            TAG_SEPARATOR = ",", OPTIONAL_OPEN = "(", OPTIONAL_CLOSE = ")",
+            REPEAT = "*", VAL = "[X]", NAME = "[name]",
+            SETTING_ID = "[setting_id]", FILEPATH = "[filepath]",
+            DECK = "deck" + ARG_SEPARATOR, DIRECTORY = "dir" + ARG_SEPARATOR;
 
     public static void parse(String command) {
         if (command.startsWith(CMD_LEARN))
@@ -78,10 +73,18 @@ public class CommandParser {
             parseDeckCommand(Deck::saveDeck);
         else if (command.startsWith(CMD_EDIT))
             parseEditCommand();
+        else if (command.startsWith(CMD_DELETE))
+            parseDeleteCommand();
         else if (command.startsWith(CMD_SETTINGS))
             Settings.printSettings();
         else if (command.startsWith(CMD_DUE))
             parseDirectoryCommand(CLIOutput::writeDecksWithDueCards);
+        else if (command.startsWith(CMD_TREE))
+            parseDirectoryCommand(CLIOutput::writeDirectoryTree);
+        else if (command.startsWith(CMD_BURROW))
+            parseDirectoryCommand(CLIOutput::writeBurrowingSequence);
+        else if (command.startsWith(CMD_MOVETO + ARG_SEPARATOR))
+            parseMovetoCommand(getRemaining(command, CMD_MOVETO + ARG_SEPARATOR));
         else if (command.startsWith(CMD_HASTAGS + ARG_SEPARATOR))
             parseHastagsCommand(getRemaining(command, CMD_HASTAGS + ARG_SEPARATOR));
         else if (command.startsWith(CMD_GOTO + ARG_SEPARATOR))
@@ -118,6 +121,31 @@ public class CommandParser {
         }
 
         // TODO: consider adding remove flash card functionality
+    }
+
+    private static void parseDeleteCommand() {
+        final String typeToDelete = "YES";
+        final FFFile toDelete = ContextManager.getContext();
+        final boolean isDeck = toDelete instanceof FFDeckFile;
+
+        CLIOutput.writeDeleteAreYouSurePrompt(toDelete.getName(), isDeck, typeToDelete);
+        String answer = CLIInput.readInput().trim().toUpperCase();
+
+        if (answer.equals(typeToDelete)) {
+            try {
+                if (toDelete.equals(Settings.getRootDirectory()))
+                    throw FlashFluencyLogicException.manipulateRootDirectory();
+
+                ContextManager.setContextToParent();
+                toDelete.delete();
+            } catch (FlashFluencyLogicException e) {
+                ExceptionMessenger.deliver(e);
+                return;
+            }
+        }
+
+        CLIOutput.writeFileDeletedNotification(
+                toDelete.getName(), isDeck, answer.equals(typeToDelete));
     }
 
     private static void parseEditCommand() {
@@ -213,6 +241,46 @@ public class CommandParser {
         }
     }
 
+    private static void parseMovetoCommand(String remaining) {
+        final FFFile sourceContext = ContextManager.getContext();
+
+        try {
+            if (sourceContext.equals(Settings.getRootDirectory()))
+                throw FlashFluencyLogicException.manipulateRootDirectory();
+        } catch (FlashFluencyLogicException e) {
+            ExceptionMessenger.deliver(e);
+            return;
+        }
+
+        String[] rs = remaining.split(DIR_SEPARATOR);
+
+        for (String r : rs) {
+            if (r.equals(PARENT_DIR))
+                ContextManager.setContextToParent();
+            else if (r.equals(ROOT_DIR))
+                ContextManager.setContextToRoot();
+            else
+                ContextManager.setContextToChild(r);
+        }
+
+        final FFFile destinationContext = ContextManager.getContext();
+
+        try {
+            if (destinationContext instanceof FFDirectory destinationDirectory) {
+                final boolean success = sourceContext.moveTo(destinationDirectory);
+                ContextManager.setContextManually(sourceContext);
+
+                CLIOutput.writeMoveTo(
+                        success, sourceContext instanceof FFDeckFile,
+                        sourceContext.getName(), sourceContext.getFilepath()
+                );
+            } else
+                throw FlashFluencyLogicException.deckFilesHaveNoChildren();
+        } catch (FlashFluencyLogicException e) {
+            ExceptionMessenger.deliver(e);
+        }
+    }
+
     private static void parseGotoCommand(String remaining) {
         String[] rs = remaining.split(DIR_SEPARATOR);
 
@@ -231,11 +299,14 @@ public class CommandParser {
                 CMD_ADD + ARG_SEPARATOR + FLASH_CARD,
                 CMD_ADD + ARG_SEPARATOR + TAG + NAME,
                 CMD_CLEAR,
+                CMD_DELETE,
                 CMD_EDIT,
                 CMD_GOTO + ARG_SEPARATOR + PARENT_DIR,
                 CMD_HELP,
                 CMD_IMPORT + ARG_SEPARATOR + FILEPATH,
                 CMD_LEARN,
+                CMD_MOVETO + ARG_SEPARATOR + NAME + OPTIONAL_OPEN +
+                        DIR_SEPARATOR + NAME + OPTIONAL_CLOSE + REPEAT,
                 CMD_QUIT,
                 CMD_REMOVE + ARG_SEPARATOR + TAG + NAME,
                 CMD_RESET,
@@ -250,6 +321,7 @@ public class CommandParser {
                 "Adds a new flash card to the deck and prompts the user to pass in a clue and answer", // add flashcard
                 "Adds tag " + NAME + " to the current deck", // add tag [name]
                 "Clears all of the flash cards from the deck, including their memorization data", // clear
+                "Deletes the deck - THIS CANNOT BE UNDONE", // delete
                 "Prompts the user for a new description for the deck", // edit
                 "Changes the context to the deck's parent directory", // goto ..
                 "Displays the valid commands at this context scope", // help
@@ -258,6 +330,8 @@ public class CommandParser {
                         "separating clue and value are valid and imported", // import [filepath]
                 "Runs a spaced repetition lesson in the current deck" +
                         " and updates the memorization status of tested flash cards", // learn
+                "Moves the current deck to the destination specified by the path " +
+                        "(relative or full).", // moveto [name](/[name])*
                 "Saves and quits the program", // quit
                 "Removes the tag " + NAME + " from the deck", // remove
                 "Resets all of memorization data for every flash card in the deck", // reset
@@ -271,8 +345,10 @@ public class CommandParser {
                 "Prints the deck's description, tags, and flash cards" // view
         };
         final String[] DIR_COMMANDS = {
+                CMD_BURROW,
                 CMD_CREATE + ARG_SEPARATOR + DECK + NAME,
                 CMD_CREATE + ARG_SEPARATOR + DIRECTORY + NAME,
+                CMD_DELETE,
                 CMD_DUE,
                 CMD_GOTO + ARG_SEPARATOR + PARENT_DIR,
                 CMD_GOTO + ARG_SEPARATOR + NAME + OPTIONAL_OPEN +
@@ -281,13 +357,19 @@ public class CommandParser {
                         TAG_SEPARATOR + NAME + OPTIONAL_CLOSE + REPEAT,
                 CMD_HELP,
                 CMD_LIST,
+                CMD_MOVETO + ARG_SEPARATOR + NAME + OPTIONAL_OPEN +
+                        DIR_SEPARATOR + NAME + OPTIONAL_CLOSE + REPEAT,
                 CMD_QUIT,
                 CMD_SET + ARG_SEPARATOR + SETTING_ID + ARG_SEPARATOR + VAL,
-                CMD_SETTINGS
+                CMD_SETTINGS,
+                CMD_TREE
         };
         final String[] DIR_EXPLANATIONS = {
+                "\"Burrows\" deeper within the current directory path until a fork " +
+                        "or terminus is reached", // burrow
                 "Creates a flash card deck file " + NAME + " in the current directory", // create deck [name]
                 "Creates a child directory " + NAME + " in the current directory", // create dir [name]
+                "Deletes the directory and its subdirectories and decks - THIS CANNOT BE UNDONE", // delete
                 "Finds all of the decks accessible via this context " +
                         "with flash cards that are due", // due
                 "Changes the context to the parent directory", // goto ..
@@ -297,9 +379,12 @@ public class CommandParser {
                         "with ALL of the tags in the search", // hastags [name](,[name])*
                 "Displays the valid commands at this context scope", // help
                 "Lists the contents of the current directory", // list
+                "Moves the current directory and its subdirectories and decks " +
+                        "to the destination specified by the path (relative or full).", // moveto [name](/[name])*
                 "Saves and quits the program", // quit
                 "Sets setting " + SETTING_ID + " to the value " + VAL, // set [setting_id] [X]
-                "Lists all the program settings and their current values" // settings
+                "Lists all the program settings and their current values", // settings
+                "Displays the content sub-tree accessible from the current directory" // tree
         };
 
         if (ContextManager.getContext() instanceof FFDirectory)

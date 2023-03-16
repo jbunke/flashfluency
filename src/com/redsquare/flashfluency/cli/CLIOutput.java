@@ -5,6 +5,7 @@ import com.redsquare.flashfluency.system.FFDeckFile;
 import com.redsquare.flashfluency.system.FFDirectory;
 import com.redsquare.flashfluency.system.FFFile;
 import com.redsquare.flashfluency.system.Settings;
+import com.redsquare.flashfluency.system.exceptions.FlashFluencyLogicException;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -12,7 +13,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class CLIOutput {
-    private static final String EMPTY = "";
+    private static final String EMPTY = "", INDENT = "    ", HIERARCHY_ARROW = "|-> ";
     private static final String NEW_LINE = "\n";
 
     private static final int BORDER_TICK_NUM = 50;
@@ -240,6 +241,40 @@ public class CLIOutput {
         sb.append(borderLine());
 
         write(sb.toString(), false);
+    }
+
+    public static void writeDirectoryTree(final FFDirectory directory) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(borderLine());
+        sb.append(DIRECTORY_COLOR)
+                .append("Content sub-tree from directory ")
+                .append(highlightName(directory.getName(), DIRECTORY_COLOR))
+                .append(":").append(NEW_LINE);
+        sb.append(borderLine());
+
+        formatTreeNode(sb, directory, 0);
+
+        sb.append(borderLine());
+
+        write(sb.toString(), false);
+    }
+
+    private static void formatTreeNode(
+            final StringBuilder sb, final FFFile node, final int depthLevel
+    ) {
+        sb.append(ANSI_RESET);
+
+        if (depthLevel > 0)
+            sb.append(INDENT.repeat(depthLevel - 1)).append(HIERARCHY_ARROW);
+
+        if (node instanceof FFDeckFile deckFile)
+            sb.append(deckInLine(deckFile.getAssociatedDeck())).append(NEW_LINE);
+        else if (node instanceof FFDirectory directory) {
+            sb.append(DIRECTORY_COLOR).append(directory.getName()).append(NEW_LINE);
+
+            for (String child : directory.getChildrenNames())
+                formatTreeNode(sb, directory.getChild(child), depthLevel + 1);
+        }
     }
 
     public static void writeDecksWithDueCards(final FFDirectory directory) {
@@ -614,6 +649,94 @@ public class CLIOutput {
         write(s, true);
     }
 
+    public static void writeBurrowingSequence(final FFDirectory currentDirectory) {
+        FFFile context = ContextManager.getContext();
+
+        // Sanity check
+        if (!context.equals(currentDirectory)) {
+            ExceptionMessenger.deliver(
+                    "The current context is not the expected directory.",
+                    false, FlashFluencyLogicException.CONSEQUENCE_COMMAND_NOT_EXECUTED
+            );
+            return;
+        }
+
+        // Header
+        write(borderLine(), false);
+
+        // Burrowing logic
+        final String NONE = "";
+
+        while (context instanceof FFDirectory directory && directory.getChildrenNames().size() == 1) {
+            String nestedName = NONE;
+
+            for (String childName : directory.getChildrenNames())
+                nestedName = childName;
+
+            ContextManager.setContextToChild(nestedName);
+            context = ContextManager.getContext();
+
+            CLIOutput.writeBurrowNotification(
+                    context.getName(), context instanceof FFDeckFile
+            );
+        }
+
+        // Postmortem termination cases and messages
+        if (context instanceof FFDirectory directory) {
+            final int numChildren = directory.getChildrenNames().size();
+
+            if (numChildren == 0)
+                CLIOutput.writeBurrowTermination(
+                        directory.getName(), false, " has no child to nest into"
+                );
+            else
+                CLIOutput.writeBurrowTermination(
+                        directory.getName(), false, " has multiple paths to choose from"
+                );
+        } else if (context instanceof FFDeckFile deckFile) {
+            CLIOutput.writeBurrowTermination(
+                    deckFile.getName(), true, " is a deck and thus a terminus"
+            );
+        }
+    }
+
+    private static void writeBurrowNotification(
+            final String contextName, final boolean isDeck
+    ) {
+        final String color = isDeck ? DECK_COLOR : DIRECTORY_COLOR;
+        String s = color + "Burrowed into " +
+                (isDeck ? "deck " : "directory ") +
+                highlightName(contextName, color) + ".";
+        write(s, true);
+    }
+
+    private static void writeBurrowTermination(
+            final String contextName, final boolean isDeck, final String reason
+    ) {
+        final String color = isDeck ? DECK_COLOR : DIRECTORY_COLOR;
+        String s = color + "The " + (isDeck ? "deck " : "directory ") +
+                highlightName(contextName, color) + reason +
+                ", so the burrowing process has terminated." + NEW_LINE +
+                borderLine();
+        write(s, false);
+    }
+
+    public static void writeMoveTo(
+            final boolean success, final boolean isDeck,
+            final String name, final String filepath
+    ) {
+        final String color = isDeck ? DECK_COLOR : DIRECTORY_COLOR;
+
+        String s = borderLine() + color + "The " + (isDeck ? "deck " : "directory ") +
+                highlightName(name, color) +
+                (success
+                        ? (" was moved to " + filepath)
+                        : " could not be moved.") +
+                NEW_LINE + borderLine();
+
+        write(s, false);
+    }
+
     public static void writeSetRootDirectoryPrompt() {
         String s = DIRECTORY_COLOR + "Set root directory: ";
         write(s, false);
@@ -635,5 +758,30 @@ public class CLIOutput {
 
     private static String highlightName(final String name, final String revertColor) {
         return NAME_HIGHLIGHT_COLOR + name + revertColor;
+    }
+
+    public static void writeDeleteAreYouSurePrompt(
+            final String name, final boolean isDeck, final String typeToDelete
+    ) {
+        final String color = isDeck ? DECK_COLOR : DIRECTORY_COLOR;
+
+        String s = color + "Are you sure you want to delete the " +
+                (isDeck ? "deck " : "directory ") + highlightName(name, color) +
+                "? Type " + ANSI_RED_BOLD + typeToDelete + color + " to delete: ";
+
+        write(s, false);
+    }
+
+    public static void writeFileDeletedNotification(
+            final String name, final boolean isDeck, final boolean deleted
+    ) {
+        final String color = isDeck ? DECK_COLOR : DIRECTORY_COLOR;
+
+        String s = borderLine() + color + "The " +
+                (isDeck ? "deck " : "directory ") +
+                highlightName(name, color) + " was " +
+                (deleted ? "" : "not ") + "deleted." +
+                NEW_LINE + borderLine();
+        write(s, false);
     }
 }

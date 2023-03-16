@@ -66,7 +66,7 @@ public class ContextManager {
             FFDirectory parent = context.getParent();
 
             if (parent == null)
-                throw FlashFluencyLogicException.cantGoBackFromRootDirectory();
+                throw FlashFluencyLogicException.manipulateRootDirectory();
 
             context = parent;
         } catch (FlashFluencyLogicException e) {
@@ -88,6 +88,10 @@ public class ContextManager {
         } catch (FlashFluencyLogicException e) {
             ExceptionMessenger.deliver(e);
         }
+    }
+
+    public static void setContextManually(FFFile file) {
+        context = file;
     }
 
     public static void lessonStarted() {
