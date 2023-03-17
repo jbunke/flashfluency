@@ -424,29 +424,49 @@ public class CLIOutput {
         write(s, false);
     }
 
-    public static void writeCorrectAnswer() {
-        String s = ANSI_GREEN_BOLD + "[ CORRECT! ]";
-        write(s, true);
+    public static void writeQuestionFeedback(
+            final boolean initiallyMarkAsCorrect,
+            final boolean timedOut, final boolean isStrictlyCorrect,
+            final boolean isCorrectWithConcessions,
+            final String correctAnswer, final int elapsedTime
+    ) {
+        StringBuilder sb = new StringBuilder();
+
+        if (initiallyMarkAsCorrect) {
+            sb.append(ANSI_GREEN_BOLD).append("[ CORRECT! ]");
+
+            if (!isStrictlyCorrect && isCorrectWithConcessions)
+                sb.append(" ... but watch out for accents: ")
+                        .append(highlightName(correctAnswer, ANSI_GREEN_BOLD))
+                        .append(" is the perfect answer");
+
+            if (Settings.isInTimedMode())
+                sb.append(NEW_LINE).append(DECK_COLOR).append("Answered in ")
+                        .append(highlightName(String.valueOf(elapsedTime), DECK_COLOR))
+                        .append(" seconds");
+        } else {
+            sb.append(ANSI_RED_BOLD);
+
+            if (!(isStrictlyCorrect || isCorrectWithConcessions))
+                sb.append("[ WRONG! ]")
+                        .append(" ... the correct answer is ")
+                        .append(highlightName(correctAnswer, ANSI_RED_BOLD));
+            else if (timedOut)
+                sb.append("[ CORRECT ] ... but you took ")
+                        .append(highlightName(String.valueOf(elapsedTime), ANSI_RED_BOLD))
+                        .append(" seconds to answer the question, so it will be marked as wrong");
+        }
+
+        write(sb.toString(), true);
     }
 
-    public static void writeWrongAnswer(String correctAnswer) {
-        String s = ANSI_RED_BOLD + "[ WRONG! ] The correct answer is " +
-                NAME_HIGHLIGHT_COLOR + correctAnswer;
-        write(s, true);
-    }
+    public static void writeOptionToMarkCorrectPrompt() {
+        final String toMarkAsCorrect = CLIInput.getTypeToMarkCorrect();
 
-    public static void writeCorrectAnswerAccentDiscrepancy(String correctAnswer) {
-        String s = ANSI_GREEN_BOLD + "[ CORRECT! ] ... but watch out for accents: " +
-                highlightName(correctAnswer, ANSI_GREEN_BOLD) + " is the perfect answer";
-        write(s, true);
-    }
-
-    public static void writeWrongAnswerWithOptionToMarkCorrect(String correctAnswer) {
-        String s = ANSI_RED_BOLD + "[ WRONG! ] The correct answer is " +
-                NAME_HIGHLIGHT_COLOR + correctAnswer + NEW_LINE + DECK_COLOR + "Type " +
-                highlightName("[ " + CLIInput.getTypeToMarkCorrect() + " ]",
-                        DECK_COLOR) + " to mark as correct anyway";
-        write(s, true);
+        String s = DECK_COLOR + (toMarkAsCorrect.length() > 1 ? "Type " : "Press ") +
+                highlightName("[ " + toMarkAsCorrect + " ]",
+                        DECK_COLOR) + " to mark as correct anyway: ";
+        write(s, false);
     }
 
     public static void writeLessonReview(Lesson lesson) {

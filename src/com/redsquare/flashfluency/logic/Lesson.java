@@ -1,5 +1,6 @@
 package com.redsquare.flashfluency.logic;
 
+import com.jordanbunke.jbub.math.JBUBRandom;
 import com.redsquare.flashfluency.cli.CLIOutput;
 import com.redsquare.flashfluency.cli.ContextManager;
 import com.redsquare.flashfluency.cli.ExceptionMessenger;
@@ -12,6 +13,8 @@ import java.util.Set;
 
 public class Lesson {
     private static final String RETIRE_SEQUENCE = "???";
+
+    private static long askTime = System.nanoTime();
 
     private final Deck deck;
 
@@ -36,6 +39,17 @@ public class Lesson {
 
         this.questions = new ArrayList<>();
         setInitialTestQuestions(deck, NUM_Qs);
+    }
+
+    public static void setAskTime() {
+        askTime = System.nanoTime();
+    }
+
+    private static int calculateElapsedQuestionTime() {
+        final long answeredTime = System.nanoTime();
+        final long NANOSECONDS_IN_SECOND = 1000000000;
+        final long elapsedTime = answeredTime - askTime;
+        return (int) (elapsedTime / NANOSECONDS_IN_SECOND);
     }
 
     public static void learn(final Deck deck) {
@@ -83,18 +97,31 @@ public class Lesson {
         CLIOutput.writeLessonIntro(this);
 
         // lesson phase
+        List<Question> nextRoundOfQuestions = new ArrayList<>();
+
         for (int i = 0; i < questions.size(); i++) {
             Question q = questions.get(i);
             String response = q.ask();
+            final int elapsedTime = calculateElapsedQuestionTime();
+
             if (response.trim().equals(RETIRE_SEQUENCE)) {
                 CLIOutput.writeRetiredLesson();
                 break;
             }
-            questions.get(i).answer(response, SR);
 
+            questions.get(i).answer(response, SR, elapsedTime);
+
+            // question will repeat in next round
             if (SR && q.getFlashCard().getLessonCounter() > 0) {
-                questions.add(Question.create(q.getFlashCard()));
+                final int insertionIndex = JBUBRandom.boundedRandom(0, nextRoundOfQuestions.size() + 1);
+                nextRoundOfQuestions.add(insertionIndex, Question.create(q.getFlashCard()));
                 CLIOutput.writeCardRepeatNotification(q.getFlashCard().getLessonCounter());
+            }
+
+            // reached end of question round and there are more questions to ask
+            if (i + 1 == questions.size() && !nextRoundOfQuestions.isEmpty()) {
+                questions.addAll(nextRoundOfQuestions);
+                nextRoundOfQuestions = new ArrayList<>();
             }
         }
 

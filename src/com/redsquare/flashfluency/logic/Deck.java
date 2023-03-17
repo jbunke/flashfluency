@@ -223,10 +223,11 @@ public class Deck {
                         Settings.isOptionForMarkingMismatchAsCorrect() ||
                         Settings.isIgnoringBracketed();
 
-        // is irreversible check
+        // is "irreversible" check
         if (tags.contains(TAG_IRREVERSIBLE) && UPDATE_COND_IRREVERSIBLE)
             Settings.irreversibleDeckSettingsUpdate(isSR);
 
+        // is "strict" check
         if (tags.contains(TAG_STRICT) && UPDATE_COND_STRICT)
             Settings.strictDeckSettingsUpdate(isSR);
     }
