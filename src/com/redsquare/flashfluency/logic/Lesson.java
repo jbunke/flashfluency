@@ -1,5 +1,6 @@
 package com.redsquare.flashfluency.logic;
 
+import com.jordanbunke.jbub.math.JBUBRandom;
 import com.redsquare.flashfluency.cli.CLIOutput;
 import com.redsquare.flashfluency.cli.ContextManager;
 import com.redsquare.flashfluency.cli.ExceptionMessenger;
@@ -96,6 +97,8 @@ public class Lesson {
         CLIOutput.writeLessonIntro(this);
 
         // lesson phase
+        List<Question> nextRoundOfQuestions = new ArrayList<>();
+
         for (int i = 0; i < questions.size(); i++) {
             Question q = questions.get(i);
             String response = q.ask();
@@ -108,10 +111,17 @@ public class Lesson {
 
             questions.get(i).answer(response, SR, elapsedTime);
 
-            // TODO: Rethink this so that next round of questions are shuffled
+            // question will repeat in next round
             if (SR && q.getFlashCard().getLessonCounter() > 0) {
-                questions.add(Question.create(q.getFlashCard()));
+                final int insertionIndex = JBUBRandom.boundedRandom(0, nextRoundOfQuestions.size() + 1);
+                nextRoundOfQuestions.add(insertionIndex, Question.create(q.getFlashCard()));
                 CLIOutput.writeCardRepeatNotification(q.getFlashCard().getLessonCounter());
+            }
+
+            // reached end of question round and there are more questions to ask
+            if (i + 1 == questions.size() && !nextRoundOfQuestions.isEmpty()) {
+                questions.addAll(nextRoundOfQuestions);
+                nextRoundOfQuestions = new ArrayList<>();
             }
         }
 
