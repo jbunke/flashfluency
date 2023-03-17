@@ -31,26 +31,28 @@ public class Settings {
 
     // indices
     private static final int LESSON_INTRO_LIMIT = 0,
-            LESSON_COUNTER_NEW = 1, LESSON_COUNTER_REVIEW = 2;
-            // FAST_ANSWER_SECONDS_THRESHOLD = 3;
+            LESSON_COUNTER_NEW = 1, LESSON_COUNTER_REVIEW = 2,
+            SECONDS_TIMEOUT = 3, NUM_TECHNICAL_SETTINGS = 4;
     private static final int MARK_FOR_ACCENTS = 0,
-            OPTION_TO_MARK_MISMATCH_AS_CORRECT = 1, IGNORE_BRACKETED = 2, REVERSE_MODE = 3;
+            OPTION_TO_MARK_MISMATCH_AS_CORRECT = 1, IGNORE_BRACKETED = 2,
+            REVERSE_MODE = 3, TIMED_MODE = 4, NUM_FLAGS = 5;
 
     // KEYWORDS
     private static final String[] TECHNICAL_KEYWORDS =
             { "lesson_introduction_limit", "lesson_counter_new",
-                    "lesson_counter_review" }; // "fast_answer_threshold" };
+                    "lesson_counter_review", "seconds_timeout" };
     private static final String[] FLAGS_KEYWORDS =
-            { "mark_for_accents", "option_to_mark_mismatch_as_correct", "ignore_bracketed", "reverse_mode" };
+            { "mark_for_accents", "option_to_mark_mismatch_as_correct",
+                    "ignore_bracketed", "reverse_mode", "timed_mode" };
     private static final String KEYWORD_SETUP = "setup", KEYWORD_ROOT = "root",
             KEYWORD_USERNAME = "username";
 
     // DEFAULTS
-    private static final int[] TECHNICAL_SETTINGS_DEFAULTS = { 40, 3, 2 };
-    private static final boolean[] FLAGS_DEFAULTS = { false, true, true, false };
+    private static final int[] TECHNICAL_SETTINGS_DEFAULTS = { 40, 3, 2, 30 };
+    private static final boolean[] FLAGS_DEFAULTS = { false, true, true, false, false };
 
-    private static final int[] TECHNICAL_SETTINGS = new int[3];
-    private static final boolean[] FLAGS = new boolean[4];
+    private static final int[] TECHNICAL_SETTINGS = new int[NUM_TECHNICAL_SETTINGS];
+    private static final boolean[] FLAGS = new boolean[NUM_FLAGS];
 
     // System settings
     private static boolean setUp = false;
@@ -82,6 +84,10 @@ public class Settings {
         return TECHNICAL_SETTINGS[LESSON_COUNTER_REVIEW];
     }
 
+    public static int getSecondsTimeout() {
+        return TECHNICAL_SETTINGS[SECONDS_TIMEOUT];
+    }
+
     public static boolean isNotMarkingForAccents() {
         return !FLAGS[MARK_FOR_ACCENTS];
     }
@@ -96,6 +102,10 @@ public class Settings {
 
     public static boolean isInReverseMode() {
         return FLAGS[REVERSE_MODE];
+    }
+
+    public static boolean isInTimedMode() {
+        return FLAGS[TIMED_MODE];
     }
 
     public static void save() throws IOException {
@@ -237,6 +247,10 @@ public class Settings {
     }
 
     private static void populateSettings(final List<String> lines) {
+        // ensures that settings not listed in file are set to defaults on startup
+        setTechnicalSettingsToDefaults();
+        setFlagsToDefaults();
+
         for (String line : lines) {
             String l = line.trim();
 
@@ -264,44 +278,39 @@ public class Settings {
     }
 
     public static void set(String settingID, String value) {
-        int v; boolean b;
+        // int v; boolean b;
+
+        boolean matchFound = false;
 
         // technical settings
-        if (settingID.equals(TECHNICAL_KEYWORDS[LESSON_INTRO_LIMIT])) {
-            v = Integer.parseInt(value);
-            TECHNICAL_SETTINGS[LESSON_INTRO_LIMIT] = v;
-        } else if (settingID.equals(TECHNICAL_KEYWORDS[LESSON_COUNTER_NEW])) {
-            v = Integer.parseInt(value);
-            TECHNICAL_SETTINGS[LESSON_COUNTER_NEW] = v;
-        } else if (settingID.equals(TECHNICAL_KEYWORDS[LESSON_COUNTER_REVIEW])) {
-            v = Integer.parseInt(value);
-            TECHNICAL_SETTINGS[LESSON_COUNTER_REVIEW] = v;
+        for (int i = 0; !matchFound && i < TECHNICAL_SETTINGS.length; i++)
+            if (settingID.equals(TECHNICAL_KEYWORDS[i])) {
+                int v = Integer.parseInt(value);
+                TECHNICAL_SETTINGS[i] = v;
+                matchFound = true;
+            }
 
-            // flags
-        } else if (settingID.equals(FLAGS_KEYWORDS[MARK_FOR_ACCENTS])) {
-            b = Boolean.parseBoolean(value);
-            FLAGS[MARK_FOR_ACCENTS] = b;
-        } else if (settingID.equals(FLAGS_KEYWORDS[OPTION_TO_MARK_MISMATCH_AS_CORRECT])) {
-            b = Boolean.parseBoolean(value);
-            FLAGS[OPTION_TO_MARK_MISMATCH_AS_CORRECT] = b;
-        } else if (settingID.equals(FLAGS_KEYWORDS[IGNORE_BRACKETED])) {
-            b = Boolean.parseBoolean(value);
-            FLAGS[IGNORE_BRACKETED] = b;
-        } else if (settingID.equals(FLAGS_KEYWORDS[REVERSE_MODE])) {
-            b = Boolean.parseBoolean(value);
-            FLAGS[REVERSE_MODE] = b;
+        // flags
+        for (int i = 0; !matchFound && i < FLAGS.length; i++)
+            if (settingID.equals(FLAGS_KEYWORDS[i])) {
+                boolean b = Boolean.parseBoolean(value);
+                FLAGS[i] = b;
+                matchFound = true;
+            }
 
-            // other
-        } else if (settingID.equals(KEYWORD_USERNAME)) {
-            username = value;
-        } else {
-            ExceptionMessenger.deliver("The argument \"" + settingID +
-                    "\" is not a legitimate setting ID.", false,
-                    FlashFluencyLogicException.CONSEQUENCE_COMMAND_NOT_EXECUTED);
-            return;
+        // other
+        if (!matchFound) {
+            if (settingID.equals(KEYWORD_USERNAME)) {
+                username = value;
+            } // extensible with else-ifs here
         }
 
-        CLIOutput.writeSettingSet(settingID, value, true, true);
+        if (matchFound)
+            CLIOutput.writeSettingSet(settingID, value, true, true);
+        else
+            ExceptionMessenger.deliver("The argument \"" + settingID +
+                            "\" is not a legitimate setting ID.", false,
+                    FlashFluencyLogicException.CONSEQUENCE_COMMAND_NOT_EXECUTED);
     }
 
     public static void printSettings() {
@@ -315,7 +324,7 @@ public class Settings {
     public static void irreversibleDeckSettingsUpdate(final boolean isSR) {
         FLAGS[REVERSE_MODE] = false;
 
-        settingsUpdate(
+        settingsUpdateNotification(
                 Deck.TAG_IRREVERSIBLE,
                 new String[] { FLAGS_KEYWORDS[REVERSE_MODE] },
                 new String[] { "false" },
@@ -328,7 +337,7 @@ public class Settings {
         FLAGS[OPTION_TO_MARK_MISMATCH_AS_CORRECT] = false;
         FLAGS[IGNORE_BRACKETED] = false;
 
-        settingsUpdate(
+        settingsUpdateNotification(
                 Deck.TAG_STRICT,
                 new String[] {
                         FLAGS_KEYWORDS[MARK_FOR_ACCENTS], FLAGS_KEYWORDS[IGNORE_BRACKETED],
@@ -341,7 +350,7 @@ public class Settings {
         );
     }
 
-    private static void settingsUpdate(
+    private static void settingsUpdateNotification(
             final String reason, final String[] settingIDs, final String[] values,
             final boolean isSR
     ) {

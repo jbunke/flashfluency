@@ -24,26 +24,38 @@ public class Question {
     public String ask() {
         CLIOutput.writeFlashCardClue(fetchClue());
         CLIOutput.writeFlashCardAnswerPrompt();
+        Lesson.setAskTime();
         return CLIInput.readInput();
     }
 
-    public void answer(final String response, final boolean SR) {
+    public void answer(final String response, final boolean SR, final int elapsedTime) {
         final String correctAnswer = fetchAnswer();
+        final boolean tookTooLongToAnswer = elapsedTime >= Settings.getSecondsTimeout();
 
-        if (MarkerHelper.isCorrectMarkingForAccents(correctAnswer, response)) {
-            CLIOutput.writeCorrectAnswer();
-            mark(true, SR);
-        } else if (Settings.isNotMarkingForAccents() &&
-                MarkerHelper.isCorrectNotMarkingForAccents(correctAnswer, response)) {
-            CLIOutput.writeCorrectAnswerAccentDiscrepancy(correctAnswer);
-            mark(true, SR);
-        } else if (Settings.isOptionForMarkingMismatchAsCorrect()) {
-            CLIOutput.writeWrongAnswerWithOptionToMarkCorrect(correctAnswer);
-            mark(CLIInput.markAsCorrect(), SR);
-        } else {
-            CLIOutput.writeWrongAnswer(correctAnswer);
-            mark(false, SR);
+        final boolean timedOut =
+                Settings.isInTimedMode() && tookTooLongToAnswer;
+        final boolean isStrictlyCorrect =
+                MarkerHelper.isCorrectMarkingForAccents(correctAnswer, response);
+        final boolean isCorrectWithConcessions =
+                Settings.isNotMarkingForAccents() &&
+                MarkerHelper.isCorrectNotMarkingForAccents(correctAnswer, response);
+
+        final boolean initiallyMarkAsCorrect =
+                !timedOut && (isStrictlyCorrect || isCorrectWithConcessions);
+        CLIOutput.writeQuestionFeedback(
+                initiallyMarkAsCorrect,
+                timedOut, isStrictlyCorrect, isCorrectWithConcessions,
+                correctAnswer, elapsedTime
+        );
+
+        boolean overrideMarkAsCorrect = false;
+        if (!initiallyMarkAsCorrect && Settings.isOptionForMarkingMismatchAsCorrect()) {
+            CLIOutput.writeOptionToMarkCorrectPrompt();
+            overrideMarkAsCorrect = CLIInput.markAsCorrect();
         }
+
+        final boolean correct = initiallyMarkAsCorrect || overrideMarkAsCorrect;
+        mark(correct, SR);
     }
 
     private String fetchClue() {
