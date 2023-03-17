@@ -196,24 +196,27 @@ public class CommandParser {
     }
 
     private static void parseCreateCommand(String remaining) {
-
         try {
             if (remaining.startsWith(DECK)) {
                 String arg = getRemaining(remaining, DECK);
-                if (isValidName(arg)) {
+                if (directoryAlreadyContains(arg)) {
+                    throw InvalidDeckFileFormatException.directoryAlreadyContains(arg);
+                } else if (isValidName(arg)) {
                     parseDirectoryCommand(FFDirectory::addDeck, arg);
                     CLIOutput.writeCreated(arg, true);
                 } else
                     throw InvalidDeckFileFormatException.invalidNameForDeck(arg);
             } else if (remaining.startsWith(DIRECTORY)) {
                 String arg = getRemaining(remaining, DIRECTORY);
-                if (isValidName(arg)) {
+                if (directoryAlreadyContains(arg)) {
+                    throw InvalidDirectoryFormatException.directoryAlreadyContains(arg);
+                } else if (isValidName(arg)) {
                     parseDirectoryCommand(FFDirectory::addChildDirectory, arg);
                     CLIOutput.writeCreated(arg, false);
                 } else
                     throw InvalidDirectoryFormatException.invalidNameForDirectory(arg);
             }
-        } catch (InvalidFormatException e) {
+        } catch (InvalidFormatException | FlashFluencyLogicException e) {
             ExceptionMessenger.deliver(e);
         }
     }
@@ -229,6 +232,12 @@ public class CommandParser {
         }
 
         return valid;
+    }
+
+    private static boolean directoryAlreadyContains(final String name)
+            throws FlashFluencyLogicException {
+        FFDirectory directory = getDirectory();
+        return directory.getChildrenNames().contains(name);
     }
 
     private static void parseTestCommand(String remaining) {

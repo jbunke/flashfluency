@@ -4,6 +4,7 @@ import com.redsquare.flashfluency.cli.ExceptionMessenger;
 import com.redsquare.flashfluency.system.exceptions.FlashFluencyLogicException;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,7 +41,9 @@ public class FFDirectory extends FFFile {
 
     @Override
     public void delete() {
-        for (String child : getChildrenNames())
+        Set<String> childrenNames = new HashSet<>(getChildrenNames());
+
+        for (String child : childrenNames)
             children.get(child).delete();
 
         super.delete();

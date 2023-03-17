@@ -42,4 +42,11 @@ public class InvalidDirectoryFormatException extends InvalidFormatException {
                 false, CONSEQUENCE_DIRECTORY_NOT_CREATED
         );
     }
+
+    public static InvalidDirectoryFormatException directoryAlreadyContains(String name) {
+        return new InvalidDirectoryFormatException(
+                "This directory already contains a subdirectory with the name \"" + name + "\"",
+                false, CONSEQUENCE_DIRECTORY_NOT_CREATED
+        );
+    }
 }

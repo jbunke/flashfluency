@@ -40,4 +40,11 @@ public class InvalidDeckFileFormatException extends InvalidFormatException {
                 false, CONSEQUENCE_DECK_FILE_NOT_CREATED
         );
     }
+
+    public static InvalidDeckFileFormatException directoryAlreadyContains(String name) {
+        return new InvalidDeckFileFormatException(
+                "This directory already contains a deck with the name \"" + name + "\"",
+                false, CONSEQUENCE_DECK_FILE_NOT_CREATED
+        );
+    }
 }
