@@ -42,8 +42,8 @@ public class CommandParser {
     private static final String CMD_DELETE = "delete"; // DONE
     private static final String CMD_TREE = "tree"; // DONE
 
-    private static final String PARENT_DIR = "..", ROOT_DIR = "", ALL = "all",
-            SUBSET = "subset" + ARG_SEPARATOR, TAG = "tag" + ARG_SEPARATOR,
+    private static final String PARENT_DIR = "..", ROOT_DIR = "", AUTOCOMPLETE = ">>",
+            ALL = "all", SUBSET = "subset" + ARG_SEPARATOR, TAG = "tag" + ARG_SEPARATOR,
             FLASH_CARD = "flashcard", DIR_SEPARATOR = "/",
             TAG_SEPARATOR = ",", OPTIONAL_OPEN = "(", OPTIONAL_CLOSE = ")",
             REPEAT = "*", VAL = "[X]", NAME = "[name]",
@@ -261,16 +261,7 @@ public class CommandParser {
             return;
         }
 
-        String[] rs = remaining.split(DIR_SEPARATOR);
-
-        for (String r : rs) {
-            if (r.equals(PARENT_DIR))
-                ContextManager.setContextToParent();
-            else if (r.equals(ROOT_DIR))
-                ContextManager.setContextToRoot();
-            else
-                ContextManager.setContextToChild(r);
-        }
+        setContextAsLocation(remaining);
 
         final FFFile destinationContext = ContextManager.getContext();
 
@@ -291,14 +282,21 @@ public class CommandParser {
     }
 
     private static void parseGotoCommand(String remaining) {
-        String[] rs = remaining.split(DIR_SEPARATOR);
+        setContextAsLocation(remaining);
+    }
+
+    private static void setContextAsLocation(final String path) {
+        String[] rs = path.split(DIR_SEPARATOR);
 
         for (String r : rs) {
             if (r.equals(PARENT_DIR))
                 ContextManager.setContextToParent();
             else if (r.equals(ROOT_DIR))
                 ContextManager.setContextToRoot();
-            else
+            else if (r.endsWith(AUTOCOMPLETE)) {
+                String prefix = r.substring(0, r.length() - AUTOCOMPLETE.length());
+                ContextManager.setContextToChildStartingWith(prefix);
+            } else
                 ContextManager.setContextToChild(r);
         }
     }

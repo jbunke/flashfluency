@@ -1,3 +1,4 @@
 "(root)"->[
+	"d test"->[],
 	"dummy deck"
 ]

@@ -50,7 +50,22 @@ public class FlashFluencyLogicException extends FlashFluencyException {
 
     public static FlashFluencyLogicException fileDoesNotExistInDir(final String name) {
         return new FlashFluencyLogicException(
-                "The file or directory \"" + name + "\" does not exist in this directory.",
+                "The deck or subdirectory \"" + name + "\" does not exist in this directory.",
+                false, CONSEQUENCE_COMMAND_NOT_EXECUTED
+        );
+    }
+
+    public static FlashFluencyLogicException fileWithPrefixDoesNotExistInDir(final String name) {
+        return new FlashFluencyLogicException(
+                "No deck or subdirectory starting with \"" + name + "\" exists in this directory.",
+                false, CONSEQUENCE_COMMAND_NOT_EXECUTED
+        );
+    }
+
+    public static FlashFluencyLogicException multipleMatchesForPrefix(final String name) {
+        return new FlashFluencyLogicException(
+                "There are multiple decks and/or subdirectories starting with \"" +
+                        name + "\" in this directory.",
                 false, CONSEQUENCE_COMMAND_NOT_EXECUTED
         );
     }

@@ -9,6 +9,8 @@ import com.redsquare.flashfluency.system.exceptions.FlashFluencyLogicException;
 import com.redsquare.flashfluency.system.exceptions.InvalidDirectoryFormatException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ContextManager {
     private static FFFile context;
@@ -74,7 +76,7 @@ public class ContextManager {
         }
     }
 
-    public static void setContextToChild(String name) {
+    public static void setContextToChild(final String name) {
         try {
             if (context instanceof FFDeckFile)
                 throw FlashFluencyLogicException.deckFilesHaveNoChildren();
@@ -85,6 +87,30 @@ public class ContextManager {
                 throw FlashFluencyLogicException.fileDoesNotExistInDir(name);
 
             context = d.getChild(name);
+        } catch (FlashFluencyLogicException e) {
+            ExceptionMessenger.deliver(e);
+        }
+    }
+
+    public static void setContextToChildStartingWith(final String prefix) {
+        try {
+            if (context instanceof FFDeckFile)
+                throw FlashFluencyLogicException.deckFilesHaveNoChildren();
+
+            FFDirectory d = (FFDirectory) context;
+
+            final List<String> matchingChildren = new ArrayList<>();
+
+            for (String childName : d.getChildrenNames())
+                if (childName.startsWith(prefix))
+                    matchingChildren.add(childName);
+
+            if (matchingChildren.isEmpty())
+                throw FlashFluencyLogicException.fileWithPrefixDoesNotExistInDir(prefix);
+            else if (matchingChildren.size() > 1)
+                throw FlashFluencyLogicException.multipleMatchesForPrefix(prefix);
+
+            context = d.getChild(matchingChildren.get(0));
         } catch (FlashFluencyLogicException e) {
             ExceptionMessenger.deliver(e);
         }
