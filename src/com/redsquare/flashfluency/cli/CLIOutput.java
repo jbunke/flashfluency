@@ -280,7 +280,8 @@ public class CLIOutput {
         else if (node instanceof FFDirectory directory) {
             sb.append(DIRECTORY_COLOR).append(directory.getName()).append(NEW_LINE);
 
-            List<String> children = directory.getChildrenNames().stream().toList();
+            List<String> children = new ArrayList<>(directory.getChildrenNames());
+            children.sort(Comparator.comparing(x -> x));
 
             for (int i = 0; i < children.size(); i++) {
                 final boolean[] newDepthRankArray = new boolean[depthRankArray.length + 1];
