@@ -217,7 +217,9 @@ public class CLIOutput {
         directory.getDecksWithMatchingTags(hasMatchingTags, tags);
 
         final List<FFDeckFile> decksWithMatchingTags = new ArrayList<>(hasMatchingTags);
-        decksWithMatchingTags.sort(Comparator.comparingInt(o -> -o.getAssociatedDeck().getNumDueFlashCards()));
+        decksWithMatchingTags.sort(Comparator.comparing(
+                x -> relativePath(directory, x) + deckInLine(x.getAssociatedDeck())
+        ));
 
         StringBuilder sb = new StringBuilder();
         sb.append(borderLine());
