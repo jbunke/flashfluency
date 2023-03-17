@@ -1,6 +1,5 @@
 package com.redsquare.flashfluency.logic;
 
-import com.jordanbunke.jbub.math.JBUBRandom;
 import com.redsquare.flashfluency.cli.CLIOutput;
 import com.redsquare.flashfluency.cli.ContextManager;
 import com.redsquare.flashfluency.cli.ExceptionMessenger;
@@ -113,7 +112,7 @@ public class Lesson {
 
             // question will repeat in next round
             if (SR && q.getFlashCard().getLessonCounter() > 0) {
-                final int insertionIndex = JBUBRandom.boundedRandom(0, nextRoundOfQuestions.size() + 1);
+                final int insertionIndex = MathHelper.randomInsertionIndex(nextRoundOfQuestions);
                 nextRoundOfQuestions.add(insertionIndex, Question.create(q.getFlashCard()));
                 CLIOutput.writeCardRepeatNotification(q.getFlashCard().getLessonCounter());
             }
