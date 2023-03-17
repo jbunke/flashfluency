@@ -1,8 +1,8 @@
 setup:true
-root:C:\Users\Jordan Bunke\Documents\ff\flash fluency
+root:C:\Users\Jordan Bunke\Documents\ff intellij contents
 username:Jordan
 
-lesson_introduction_limit:20
+lesson_introduction_limit:40
 lesson_counter_new:3
 lesson_counter_review:2
 mark_for_accents:false
