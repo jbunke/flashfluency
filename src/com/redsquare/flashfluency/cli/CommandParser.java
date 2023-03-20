@@ -43,8 +43,9 @@ public class CommandParser {
     private static final String CMD_TREE = "tree"; // DONE
     private static final String CMD_PRUNE = "prune"; // DONE
 
-    private static final String PARENT_DIR = "..", ROOT_DIR = "", AUTOCOMPLETE = ">>",
-            ALL = "all", SUBSET = "subset" + ARG_SEPARATOR, TAG = "tag" + ARG_SEPARATOR,
+    private static final String PARENT_DIR = "..", ROOT_DIR = "",
+            AUTOCOMPLETE = ">>", APPEND = "&&", ALL = "all",
+            SUBSET = "subset" + ARG_SEPARATOR, TAG = "tag" + ARG_SEPARATOR,
             FLASH_CARD = "flashcard", DIR_SEPARATOR = "/",
             TAG_SEPARATOR = ",", OPTIONAL_OPEN = "(", OPTIONAL_CLOSE = ")",
             REPEAT = "*", VAL = "[X]", NAME = "[name]",
@@ -52,6 +53,15 @@ public class CommandParser {
             DECK = "deck" + ARG_SEPARATOR, DIRECTORY = "dir" + ARG_SEPARATOR;
 
     public static void parse(String command) {
+        if (command.contains(APPEND)) {
+            final String[] commandSequence = command.split(APPEND);
+
+            for (String c : commandSequence)
+                parse(c.trim());
+
+            return;
+        }
+
         if (command.startsWith(CMD_LEARN))
             parseDeckCommand(Lesson::learn);
         else if (command.startsWith(CMD_HELP))

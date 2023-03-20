@@ -11,7 +11,9 @@ public class FileIOHelper {
     public static void deleteFileFootprintFromSystem(final String filepath) {
         try {
             Path path = FileSystems.getDefault().getPath(filepath);
-            Files.delete(path);
+
+            if (path.toFile().exists())
+                Files.delete(path);
         } catch (IOException e) {
             ExceptionMessenger.deliver(
                     "The file footprint \"" + filepath +
