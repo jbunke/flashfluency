@@ -129,9 +129,10 @@ public class CommandParser {
         final boolean isDeck = toDelete instanceof FFDeckFile;
 
         CLIOutput.writeDeleteAreYouSurePrompt(toDelete.getName(), isDeck, typeToDelete);
-        String answer = CLIInput.readInput().trim().toUpperCase();
+        final String answer = CLIInput.readInput().trim().toUpperCase();
+        final boolean decisionToDelete = answer.equals(typeToDelete);
 
-        if (answer.equals(typeToDelete)) {
+        if (decisionToDelete) {
             try {
                 if (toDelete.equals(Settings.getRootDirectory()))
                     throw FlashFluencyLogicException.manipulateRootDirectory();
@@ -145,7 +146,7 @@ public class CommandParser {
         }
 
         CLIOutput.writeFileDeletedNotification(
-                toDelete.getName(), isDeck, answer.equals(typeToDelete));
+                toDelete.getName(), isDeck, decisionToDelete);
     }
 
     private static void parseEditCommand() {
