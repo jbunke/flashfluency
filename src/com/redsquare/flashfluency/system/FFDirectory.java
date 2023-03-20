@@ -39,6 +39,18 @@ public class FFDirectory extends FFFile {
         return super.moveTo(destination);
     }
 
+    public void prune(final boolean safeFromDeletion) {
+        Set<String> childrenNames = new HashSet<>(getChildrenNames());
+
+        for (String child : childrenNames)
+            if (children.get(child) instanceof FFDirectory childDir)
+                childDir.prune(false);
+
+        // after so that it can also be pruned if all of its contents were pruned
+        if (children.isEmpty() && !safeFromDeletion)
+            super.delete();
+    }
+
     @Override
     public void delete() {
         Set<String> childrenNames = new HashSet<>(getChildrenNames());

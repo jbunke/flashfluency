@@ -775,6 +775,50 @@ public class CLIOutput {
         write(s, false);
     }
 
+    public static void writeDeleteAreYouSurePrompt(
+            final String name, final boolean isDeck, final String typeToDelete
+    ) {
+        final String color = isDeck ? DECK_COLOR : DIRECTORY_COLOR;
+
+        String s = color + "Are you sure you want to delete the " +
+                (isDeck ? "deck " : "directory ") + highlightName(name, color) +
+                "? Type " + ANSI_RED_BOLD + typeToDelete + color + " to delete: ";
+
+        write(s, false);
+    }
+
+    public static void writePruneAreYouSurePrompt(
+            final String name, final String typeToDelete
+    ) {
+        String s = DIRECTORY_COLOR +
+                "Are you sure you want to prune all empty directories accessible via " +
+                highlightName(name, DIRECTORY_COLOR) + "? Type " +
+                ANSI_RED_BOLD + typeToDelete + DIRECTORY_COLOR + " to prune: ";
+
+        write(s, false);
+    }
+
+    public static void writePrunedNotification(final String name) {
+        String s = borderLine() + DIRECTORY_COLOR +
+                "Pruned all empty directories accessible via directory " +
+                highlightName(name, DIRECTORY_COLOR) + "." + NEW_LINE +
+                borderLine();
+        write(s, false);
+    }
+
+    public static void writeFileDeletedNotification(
+            final String name, final boolean isDeck, final boolean deleted
+    ) {
+        final String color = isDeck ? DECK_COLOR : DIRECTORY_COLOR;
+
+        String s = borderLine() + color + "The " +
+                (isDeck ? "deck " : "directory ") +
+                highlightName(name, color) + " was " +
+                (deleted ? "" : "not ") + "deleted." +
+                NEW_LINE + borderLine();
+        write(s, false);
+    }
+
     public static void writeSetRootDirectoryPrompt() {
         String s = DIRECTORY_COLOR + "Set root directory: ";
         write(s, false);
@@ -798,28 +842,4 @@ public class CLIOutput {
         return NAME_HIGHLIGHT_COLOR + name + revertColor;
     }
 
-    public static void writeDeleteAreYouSurePrompt(
-            final String name, final boolean isDeck, final String typeToDelete
-    ) {
-        final String color = isDeck ? DECK_COLOR : DIRECTORY_COLOR;
-
-        String s = color + "Are you sure you want to delete the " +
-                (isDeck ? "deck " : "directory ") + highlightName(name, color) +
-                "? Type " + ANSI_RED_BOLD + typeToDelete + color + " to delete: ";
-
-        write(s, false);
-    }
-
-    public static void writeFileDeletedNotification(
-            final String name, final boolean isDeck, final boolean deleted
-    ) {
-        final String color = isDeck ? DECK_COLOR : DIRECTORY_COLOR;
-
-        String s = borderLine() + color + "The " +
-                (isDeck ? "deck " : "directory ") +
-                highlightName(name, color) + " was " +
-                (deleted ? "" : "not ") + "deleted." +
-                NEW_LINE + borderLine();
-        write(s, false);
-    }
 }

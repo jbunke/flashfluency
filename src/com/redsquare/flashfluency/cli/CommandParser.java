@@ -41,6 +41,7 @@ public class CommandParser {
     private static final String CMD_MOVETO = "moveto"; // DONE
     private static final String CMD_DELETE = "delete"; // DONE
     private static final String CMD_TREE = "tree"; // DONE
+    private static final String CMD_PRUNE = "prune"; // DONE
 
     private static final String PARENT_DIR = "..", ROOT_DIR = "", AUTOCOMPLETE = ">>",
             ALL = "all", SUBSET = "subset" + ARG_SEPARATOR, TAG = "tag" + ARG_SEPARATOR,
@@ -75,6 +76,8 @@ public class CommandParser {
             parseEditCommand();
         else if (command.startsWith(CMD_DELETE))
             parseDeleteCommand();
+        else if (command.startsWith(CMD_PRUNE))
+            parsePruneCommand();
         else if (command.startsWith(CMD_SETTINGS))
             Settings.printSettings();
         else if (command.startsWith(CMD_DUE))
@@ -121,6 +124,26 @@ public class CommandParser {
         }
 
         // TODO: consider adding remove flash card functionality
+    }
+
+    private static void parsePruneCommand() {
+        final String typeToDelete = "YES";
+
+        try {
+            final FFDirectory toPruneFrom = getDirectory();
+
+            CLIOutput.writePruneAreYouSurePrompt(toPruneFrom.getName(), typeToDelete);
+            final String answer = CLIInput.readInput().trim().toUpperCase();
+            final boolean decisionToPrune = answer.equals(typeToDelete);
+
+            if (decisionToPrune) {
+                toPruneFrom.prune(true);
+                CLIOutput.writePrunedNotification(toPruneFrom.getName());
+            }
+
+        } catch (FlashFluencyLogicException e) {
+            ExceptionMessenger.deliver(e);
+        }
     }
 
     private static void parseDeleteCommand() {
@@ -339,7 +362,7 @@ public class CommandParser {
                 "Runs a spaced repetition lesson in the current deck" +
                         " and updates the memorization status of tested flash cards", // learn
                 "Moves the current deck to the destination specified by the path " +
-                        "(relative or full).", // moveto [name](/[name])*
+                        "(relative or full)", // moveto [name](/[name])*
                 "Saves and quits the program", // quit
                 "Removes the tag " + NAME + " from the deck", // remove
                 "Resets all of memorization data for every flash card in the deck", // reset
@@ -367,6 +390,7 @@ public class CommandParser {
                 CMD_LIST,
                 CMD_MOVETO + ARG_SEPARATOR + NAME + OPTIONAL_OPEN +
                         DIR_SEPARATOR + NAME + OPTIONAL_CLOSE + REPEAT,
+                CMD_PRUNE,
                 CMD_QUIT,
                 CMD_SET + ARG_SEPARATOR + SETTING_ID + ARG_SEPARATOR + VAL,
                 CMD_SETTINGS,
@@ -388,7 +412,8 @@ public class CommandParser {
                 "Displays the valid commands at this context scope", // help
                 "Lists the contents of the current directory", // list
                 "Moves the current directory and its subdirectories and decks " +
-                        "to the destination specified by the path (relative or full).", // moveto [name](/[name])*
+                        "to the destination specified by the path (relative or full)", // moveto [name](/[name])*
+                "Deletes all empty directories accessible from this directory", // prune
                 "Saves and quits the program", // quit
                 "Sets setting " + SETTING_ID + " to the value " + VAL, // set [setting_id] [X]
                 "Lists all the program settings and their current values", // settings
