@@ -92,7 +92,7 @@ public class ContextManager {
         }
     }
 
-    public static void setContextToChildStartingWith(final String prefix) {
+    public static void setContextToChildWithSegment(final boolean isPrefix, final String segment) {
         try {
             if (context instanceof FFDeckFile)
                 throw FlashFluencyLogicException.deckFilesHaveNoChildren();
@@ -102,13 +102,13 @@ public class ContextManager {
             final List<String> matchingChildren = new ArrayList<>();
 
             for (String childName : d.getChildrenNames())
-                if (childName.startsWith(prefix))
+                if (isPrefix ? childName.startsWith(segment) : childName.endsWith(segment))
                     matchingChildren.add(childName);
 
             if (matchingChildren.isEmpty())
-                throw FlashFluencyLogicException.fileWithPrefixDoesNotExistInDir(prefix);
+                throw FlashFluencyLogicException.fileWithSegmentTypeDoesNotExistInDir(isPrefix, segment);
             else if (matchingChildren.size() > 1)
-                throw FlashFluencyLogicException.multipleMatchesForPrefix(prefix);
+                throw FlashFluencyLogicException.multipleMatchesForSegmentType(isPrefix, segment);
 
             context = d.getChild(matchingChildren.get(0));
         } catch (FlashFluencyLogicException e) {

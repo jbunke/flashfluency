@@ -55,19 +55,26 @@ public class FlashFluencyLogicException extends FlashFluencyException {
         );
     }
 
-    public static FlashFluencyLogicException fileWithPrefixDoesNotExistInDir(final String name) {
+    public static FlashFluencyLogicException fileWithSegmentTypeDoesNotExistInDir(
+            final boolean isPrefix, final String name
+    ) {
+        final String message = "No deck or subdirectory " +
+                (isPrefix ? "starting" : "ending") +
+                " with \"" + name + "\" exists in this directory.";
+
         return new FlashFluencyLogicException(
-                "No deck or subdirectory starting with \"" + name + "\" exists in this directory.",
-                false, CONSEQUENCE_COMMAND_NOT_EXECUTED
-        );
+                message, false, CONSEQUENCE_COMMAND_NOT_EXECUTED);
     }
 
-    public static FlashFluencyLogicException multipleMatchesForPrefix(final String name) {
+    public static FlashFluencyLogicException multipleMatchesForSegmentType(
+            final boolean isPrefix, final String name
+    ) {
+        final String message = "There are multiple decks and/or subdirectories " +
+                (isPrefix ? "starting" : "ending") +
+                " with \"" + name + "\" in this directory.";
+
         return new FlashFluencyLogicException(
-                "There are multiple decks and/or subdirectories starting with \"" +
-                        name + "\" in this directory.",
-                false, CONSEQUENCE_COMMAND_NOT_EXECUTED
-        );
+                message, false, CONSEQUENCE_COMMAND_NOT_EXECUTED);
     }
 
     public static FlashFluencyLogicException contextIsNotDeckFile() {

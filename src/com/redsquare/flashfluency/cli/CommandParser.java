@@ -45,7 +45,7 @@ public class CommandParser {
     private static final String CMD_PRUNE = "prune"; // DONE
 
     private static final String PARENT_DIR = "..", ROOT_DIR = "",
-            AUTOCOMPLETE = ">>", APPEND = "&&", ALL = "all",
+            COMPLETE_FOLLOWING = ">>", COMPLETE_PRECEDING = "<<", APPEND = "&&", ALL = "all",
             SUBSET = "subset" + ARG_SEPARATOR, TAG = "tag" + ARG_SEPARATOR,
             FLASH_CARD = "flashcard", DIR_SEPARATOR = "/",
             TAG_SEPARATOR = ",", OPTIONAL_OPEN = "(", OPTIONAL_CLOSE = ")",
@@ -332,9 +332,12 @@ public class CommandParser {
                 ContextManager.setContextToParent();
             else if (r.equals(ROOT_DIR))
                 ContextManager.setContextToRoot();
-            else if (r.endsWith(AUTOCOMPLETE)) {
-                String prefix = r.substring(0, r.length() - AUTOCOMPLETE.length());
-                ContextManager.setContextToChildStartingWith(prefix);
+            else if (r.endsWith(COMPLETE_FOLLOWING)) {
+                String prefix = r.substring(0, r.length() - COMPLETE_FOLLOWING.length());
+                ContextManager.setContextToChildWithSegment(true, prefix);
+            } else if (r.startsWith(COMPLETE_PRECEDING)) {
+                String suffix = r.substring(COMPLETE_PRECEDING.length());
+                ContextManager.setContextToChildWithSegment(false, suffix);
             } else
                 ContextManager.setContextToChild(r);
         }
