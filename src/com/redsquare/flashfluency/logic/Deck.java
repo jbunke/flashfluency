@@ -63,6 +63,7 @@ public class Deck {
 
     public void addTag(final String tag) {
         tags.add(tag);
+        CLIOutput.writeAddedTag(tag);
     }
 
     public void setDescription(String description) {

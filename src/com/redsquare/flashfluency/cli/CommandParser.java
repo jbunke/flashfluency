@@ -12,6 +12,7 @@ import com.redsquare.flashfluency.system.exceptions.InvalidDeckFileFormatExcepti
 import com.redsquare.flashfluency.system.exceptions.InvalidDirectoryFormatException;
 import com.redsquare.flashfluency.system.exceptions.InvalidFormatException;
 
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -212,7 +213,6 @@ public class CommandParser {
         if (remaining.startsWith(TAG)) {
             String arg = getRemaining(remaining, TAG);
             parseDeckCommand(Deck::addTag, arg);
-            CLIOutput.writeAddedTag(arg);
         } else if (remaining.startsWith(FLASH_CARD)) {
             CLIOutput.writeNewFlashCardCluePrompt();
             String clue = CLIInput.readInput();
@@ -223,6 +223,7 @@ public class CommandParser {
 
             try {
                 getDeck().addFlashCard(flashCard);
+                CLIOutput.writeAddedFlashCard(flashCard);
             } catch (FlashFluencyLogicException e) {
                 ExceptionMessenger.deliver(e);
             }
@@ -256,13 +257,17 @@ public class CommandParser {
     }
 
     private static boolean isValidName(final String name) {
-        final char[] ineligible =
-                { '\'', '"', '\\', '/', '.', '-', '>', '(', ')', '[', ']' };
-        final int NOT_FOUND = -1;
+        final Set<Character> eligible = Set.of('-', '(', ')', '_', '*', ',', '.');
         boolean valid = true;
 
-        for (char c : ineligible) {
-            valid &= name.indexOf(c) == NOT_FOUND;
+        for (char c : name.toCharArray()) {
+            final boolean isLowercaseLetter = c >= 'a' && c <= 'z';
+            final boolean isUppercaseLetter = c >= 'A' && c <= 'Z';
+            final boolean isNumber = c >= '0' && c <= '9';
+            final boolean isOtherEligibleCharacter = eligible.contains(c);
+
+            valid &= (isLowercaseLetter || isUppercaseLetter ||
+                    isNumber || isOtherEligibleCharacter);
         }
 
         return valid;

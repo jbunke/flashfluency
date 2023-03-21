@@ -547,6 +547,14 @@ public class CLIOutput {
         write(s, false);
     }
 
+    public static void writeAddedFlashCard(FlashCard flashCard) {
+        String s = DECK_COLOR + "Added flash card: [ CLUE ] : " +
+                highlightName(flashCard.getClue(), DECK_COLOR) + " , [ ANSWER ] : " +
+                highlightName(flashCard.getAnswer(), DECK_COLOR);
+
+        write(s, true);
+    }
+
     public static void writeImportedFlashCard(FlashCard flashCard) {
         String s = DECK_COLOR + "Imported flash card: [ CLUE ] : " +
                 highlightName(flashCard.getClue(), DECK_COLOR) + " , [ ANSWER ] : " +
