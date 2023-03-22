@@ -116,60 +116,64 @@ public class CLIOutput {
 
         sb.append(")").append(NEW_LINE).append(borderLine());
 
+        writeDeckTable(deck, sb);
+
+        write(sb.toString(), false);
+    }
+
+    private static void writeDeckTable(final Deck deck, final StringBuilder sb) {
         appendSectionTitle(sb, "Flash Card Table:");
         sb.append(NEW_LINE);
 
-        final int CLUE_INDEX = 0, ANSWER_INDEX = 1, INTRODUCED_INDEX = 2,
-                DUE_INDEX = 3, STATUS_INDEX = 4, PROMOTION_INDEX = 5, CAT_COUNT = 6;
+        final int CAT_COUNT = 5, SPACES_PER_CAT = 20;
 
-        final String[] CATEGORIES = { "Clue", "Answer", "Introduced?", "Due",
-                "Status", "Answers to Promotion" };
+        final String[] CATEGORIES = { "Clue", "Answer", "Due", "Status", "Promotion In" };
 
         final List<Function<FlashCard, String>> FUNCTIONS = List.of(
-                FlashCard::getClue, FlashCard::getAnswer, x -> x.isIntroduced() ? "Yes" : "No",
+                x -> {
+                    String clue = x.getClue();
+                    if (clue.length() > SPACES_PER_CAT - 3)
+                        return clue.substring(0, SPACES_PER_CAT - 5) + "...";
+                    else
+                        return clue;
+                },
+                x -> {
+                    String answer = x.getAnswer();
+                    if (answer.length() > SPACES_PER_CAT - 3)
+                        return answer.substring(0, SPACES_PER_CAT - 5) + "...";
+                    else
+                        return answer;
+                },
                 x -> {
                     LocalDate d = x.getDue();
-                    return d.getDayOfMonth() + "-" + d.getMonthValue() + "-" + d.getYear();
+                    String dateColor = d.isBefore(LocalDate.now())
+                            ? ANSI_RED_BOLD
+                            : (d.isEqual(LocalDate.now())
+                                    ? ANSI_YELLOW_BOLD
+                                    : ANSI_GREEN_BOLD);
+                    String date = d.getDayOfMonth() + "-" + d.getMonthValue() + "-" + d.getYear();
+                    return dateColor + date + ANSI_RESET;
                 },
                 x -> potColor(x.getPot()) + x.getPot() + ANSI_RESET,
                 x -> {
                     final int counter = x.getPotCounter();
                     return counter > 0 ? String.valueOf(counter) : "N/A";
-                }
-        );
+                });
 
-        final int[] SPACES = new int[6];
-        SPACES[CLUE_INDEX] = 50;
-        SPACES[ANSWER_INDEX] = 50;
-        SPACES[INTRODUCED_INDEX] = 15;
-        SPACES[DUE_INDEX] = 15;
-        SPACES[STATUS_INDEX] = 15;
-        SPACES[PROMOTION_INDEX] = 30;
-
-        final int OFFSET = 3, BUFFER_THRESHOLD = 5;
         final String WHITESPACE = " ";
-        final String NON_PRINTED_POSIX = "\\p{C}";
-
-        final OptionalInt MAX_CLUE_LENGTH = deck.getFlashCardClues().stream().mapToInt(String::length).max();
-        final OptionalInt MAX_ANSWER_LENGTH = deck.getFlashCardAnswers().stream().mapToInt(String::length).max();
-
-        if (MAX_CLUE_LENGTH.isPresent())
-            SPACES[CLUE_INDEX] = MAX_CLUE_LENGTH.getAsInt() + BUFFER_THRESHOLD;
-        if (MAX_ANSWER_LENGTH.isPresent())
-            SPACES[ANSWER_INDEX] = MAX_ANSWER_LENGTH.getAsInt() + BUFFER_THRESHOLD;
 
         // Categories
         StringBuilder catSB = new StringBuilder();
-        int catSpaceSum = 0;
 
         for (int i = 0; i < CAT_COUNT; i++) {
-            catSpaceSum += SPACES[i];
-            catSB.append(WHITESPACE.repeat(OFFSET)).append(CATEGORIES[i]).
-                    append(WHITESPACE.repeat(catSpaceSum -
-                            catSB.toString().replaceAll(NON_PRINTED_POSIX, "").length()));
+            catSB.append(CATEGORIES[i]);
+
+            final int whitespacesToAdd = (SPACES_PER_CAT * (i + 1)) -
+                    replaceAllNonPrinted(catSB.toString()).length();
+            catSB.append(WHITESPACE.repeat(whitespacesToAdd));
         }
 
-        sb.append(catSB).append(NEW_LINE).append(BORDER_TICK.repeat(catSpaceSum / 2)).append(NEW_LINE);
+        sb.append(catSB).append(NEW_LINE).append(borderLine());
 
         List<String> fs = new ArrayList<>(deck.getFlashCardClues());
         fs.sort(Comparator.naturalOrder());
@@ -177,29 +181,61 @@ public class CLIOutput {
         for (String f : fs) {
             FlashCard fc = deck.getFlashCard(f);
             StringBuilder flSB = new StringBuilder();
-            catSpaceSum = 0;
             for (int i = 0; i < CAT_COUNT; i++) {
-                catSpaceSum += SPACES[i];
-                if (i == STATUS_INDEX) catSpaceSum += 9; // TODO: get rid of this hotfix
-
-                final String precedingWhitespace = WHITESPACE.repeat(OFFSET);
-                flSB.append(precedingWhitespace);
-
                 final String flashCardCategoryText = FUNCTIONS.get(i).apply(fc);
                 flSB.append(flashCardCategoryText);
 
-                final String lineWithNonPrintedRemoved = flSB.toString().replaceAll(NON_PRINTED_POSIX, "");
-                final String followingWhitespace = WHITESPACE.repeat(catSpaceSum - lineWithNonPrintedRemoved.length());
+                final String lineWithNonPrintedRemoved =
+                        replaceAllNonPrinted(flSB.toString());
+
+                final int whitespacesToAdd = (SPACES_PER_CAT * (i + 1)) -
+                        lineWithNonPrintedRemoved.length();
+                final String followingWhitespace = WHITESPACE.repeat(whitespacesToAdd);
                 flSB.append(followingWhitespace);
             }
 
-            sb.append(flSB).append(NEW_LINE.repeat(2));
+            sb.append(flSB).append(NEW_LINE).append(borderLine());
+
+            Set<String> cluePermutations = QAParser.validOptionsForQADefinition(
+                    QAParser.removeBrackets(fc.getClue()));
+            Set<String> acceptableAnswerPermutations = QAParser.validOptionsForQADefinition(
+                    Settings.isIgnoringBracketed()
+                            ? fc.getAnswer()
+                            : QAParser.removeBrackets(fc.getAnswer()));
+
+            sb.append(VALUE_HIGHLIGHT_COLOR).append("CLUE");
+
+            if (cluePermutations.size() == 1)
+                sb.append(ANSI_RESET).append(": ");
+            else
+                sb.append(" PERMUTATIONS").append(ANSI_RESET)
+                        .append(":").append(NEW_LINE);
+
+            for (String clue : cluePermutations)
+                sb.append(highlightName(clue, ANSI_RESET)).append(NEW_LINE);
+
+            sb.append(VALUE_HIGHLIGHT_COLOR);
+
+            if (acceptableAnswerPermutations.size() == 1)
+                sb.append("CORRECT ANSWER").append(ANSI_RESET).append(": ");
+            else
+                sb.append("ACCEPTABLE ANSWERS").append(ANSI_RESET)
+                        .append(":").append(NEW_LINE);
+
+            for (String answer : acceptableAnswerPermutations)
+                sb.append(highlightName(answer, ANSI_RESET)).append(NEW_LINE);
+
+            sb.append(borderLine());
         }
+    }
 
-        sb.delete(sb.length() - 1, sb.length());
-        sb.append(borderLine());
-
-        write(sb.toString(), false);
+    private static String replaceAllNonPrinted(final String s) {
+        final String NON_PRINTED_POSIX = "\\p{C}";
+        return s.replace(ANSI_RESET, EMPTY)
+                .replace(ANSI_BLUE_BOLD, EMPTY).replace(ANSI_CYAN_BOLD, EMPTY)
+                .replace(ANSI_GREEN_BOLD, EMPTY).replace(ANSI_PURPLE_BOLD, EMPTY)
+                .replace(ANSI_RED_BOLD, EMPTY).replace(ANSI_YELLOW_BOLD, EMPTY)
+                .replaceAll(NON_PRINTED_POSIX, EMPTY);
     }
 
     private static void appendSectionTitle(StringBuilder sb, String sectionTitle) {
