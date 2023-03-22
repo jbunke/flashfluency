@@ -11,3 +11,4 @@ option_to_mark_mismatch_as_correct:true
 ignore_bracketed:true
 reverse_mode:false
 timed_mode:true
+specific_clue_path:true

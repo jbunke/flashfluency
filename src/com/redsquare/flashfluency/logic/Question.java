@@ -6,6 +6,9 @@ import com.redsquare.flashfluency.cli.ExceptionMessenger;
 import com.redsquare.flashfluency.system.Settings;
 import com.redsquare.flashfluency.system.exceptions.FlashFluencyLogicException;
 
+import java.util.Optional;
+import java.util.Set;
+
 public class Question {
     private final FlashCard flashCard;
     private boolean answered;
@@ -29,24 +32,25 @@ public class Question {
     }
 
     public void answer(final String response, final boolean SR, final int elapsedTime) {
-        final String correctAnswer = fetchAnswer();
+        final String correctAnswerDefinition = fetchAnswerDefinition();
         final boolean tookTooLongToAnswer = elapsedTime >= Settings.getSecondsTimeout();
 
         final boolean timedOut =
                 Settings.isInTimedMode() && tookTooLongToAnswer;
-        final boolean isStrictlyCorrect =
-                MarkerHelper.isCorrectMarkingForAccents(correctAnswer, response);
-        final boolean isCorrectWithConcessions =
-                Settings.isNotMarkingForAccents() &&
-                MarkerHelper.isCorrectNotMarkingForAccents(correctAnswer, response);
+        final Optional<String> isStrictlyCorrect =
+                QAParser.isCorrect(correctAnswerDefinition, response, true);
+        final Optional<String> isCorrectWithConcessions = Settings.isNotMarkingForAccents()
+                ? QAParser.isCorrect(correctAnswerDefinition, response, false)
+                : Optional.empty();
 
         final boolean initiallyMarkAsCorrect =
-                !timedOut && (isStrictlyCorrect || isCorrectWithConcessions);
+                !timedOut && (isStrictlyCorrect.isPresent() ||
+                                isCorrectWithConcessions.isPresent());
         CLIOutput.writeQuestionFeedback(
                 initiallyMarkAsCorrect,
                 timedOut, isStrictlyCorrect, isCorrectWithConcessions,
-                correctAnswer, elapsedTime
-        );
+                QAParser.validOptionsForQADefinition(correctAnswerDefinition),
+                elapsedTime);
 
         boolean overrideMarkAsCorrect = false;
         if (!initiallyMarkAsCorrect && Settings.isOptionForMarkingMismatchAsCorrect()) {
@@ -59,14 +63,21 @@ public class Question {
     }
 
     private String fetchClue() {
-        return MarkerHelper.removeBrackets(
-                Settings.isInReverseMode()
+        final String adaptedClueDefinition =
+                QAParser.removeBrackets(Settings.isInReverseMode()
                         ? flashCard.getAnswer()
-                        : flashCard.getClue()
-        );
+                        : flashCard.getClue());
+
+        if (Settings.isSpecificCluePath()) {
+            final Set<String> validClues =
+                    QAParser.validOptionsForQADefinition(adaptedClueDefinition);
+
+            return MathHelper.randomElementFromSet(validClues);
+        } else
+            return adaptedClueDefinition;
     }
 
-    private String fetchAnswer() {
+    private String fetchAnswerDefinition() {
         return Settings.isInReverseMode()
                 ? flashCard.getClue()
                 : flashCard.getAnswer();

@@ -35,7 +35,7 @@ public class Settings {
             SECONDS_TIMEOUT = 3, NUM_TECHNICAL_SETTINGS = 4;
     private static final int MARK_FOR_ACCENTS = 0,
             OPTION_TO_MARK_MISMATCH_AS_CORRECT = 1, IGNORE_BRACKETED = 2,
-            REVERSE_MODE = 3, TIMED_MODE = 4, NUM_FLAGS = 5;
+            REVERSE_MODE = 3, TIMED_MODE = 4, SPECIFIC_CLUE_PATH = 5, NUM_FLAGS = 6;
 
     // KEYWORDS
     private static final String[] TECHNICAL_KEYWORDS =
@@ -43,13 +43,13 @@ public class Settings {
                     "lesson_counter_review", "seconds_timeout" };
     private static final String[] FLAGS_KEYWORDS =
             { "mark_for_accents", "option_to_mark_mismatch_as_correct",
-                    "ignore_bracketed", "reverse_mode", "timed_mode" };
+                    "ignore_bracketed", "reverse_mode", "timed_mode", "specific_clue_path" };
     private static final String KEYWORD_SETUP = "setup", KEYWORD_ROOT = "root",
             KEYWORD_USERNAME = "username";
 
     // DEFAULTS
     private static final int[] TECHNICAL_SETTINGS_DEFAULTS = { 40, 3, 2, 30 };
-    private static final boolean[] FLAGS_DEFAULTS = { false, true, true, false, false };
+    private static final boolean[] FLAGS_DEFAULTS = { false, true, true, false, false, true };
 
     private static final int[] TECHNICAL_SETTINGS = new int[NUM_TECHNICAL_SETTINGS];
     private static final boolean[] FLAGS = new boolean[NUM_FLAGS];
@@ -106,6 +106,10 @@ public class Settings {
 
     public static boolean isInTimedMode() {
         return FLAGS[TIMED_MODE];
+    }
+
+    public static boolean isSpecificCluePath() {
+        return FLAGS[SPECIFIC_CLUE_PATH];
     }
 
     public static void save() throws IOException {

@@ -429,18 +429,18 @@ public class CLIOutput {
 
     public static void writeQuestionFeedback(
             final boolean initiallyMarkAsCorrect,
-            final boolean timedOut, final boolean isStrictlyCorrect,
-            final boolean isCorrectWithConcessions,
-            final String correctAnswer, final int elapsedTime
+            final boolean timedOut, final Optional<String> isStrictlyCorrect,
+            final Optional<String> isCorrectWithConcessions,
+            final Set<String> validCorrectAnswers, final int elapsedTime
     ) {
         StringBuilder sb = new StringBuilder();
 
         if (initiallyMarkAsCorrect) {
             sb.append(ANSI_GREEN_BOLD).append("[ CORRECT! ]");
 
-            if (!isStrictlyCorrect && isCorrectWithConcessions)
+            if (isStrictlyCorrect.isEmpty() && isCorrectWithConcessions.isPresent())
                 sb.append(" ... but watch out for accents: ")
-                        .append(highlightName(correctAnswer, ANSI_GREEN_BOLD))
+                        .append(highlightName(isCorrectWithConcessions.get(), ANSI_GREEN_BOLD))
                         .append(" is the perfect answer");
 
             if (Settings.isInTimedMode())
@@ -450,11 +450,27 @@ public class CLIOutput {
         } else {
             sb.append(ANSI_RED_BOLD);
 
-            if (!(isStrictlyCorrect || isCorrectWithConcessions))
+            if (isStrictlyCorrect.isEmpty() && isCorrectWithConcessions.isEmpty()) {
                 sb.append("[ WRONG! ]")
-                        .append(" ... the correct answer is ")
-                        .append(highlightName(correctAnswer, ANSI_RED_BOLD));
-            else if (timedOut)
+                        .append(" ... the ");
+
+                if (validCorrectAnswers.size() == 1) {
+                    sb.append("correct answer is ");
+
+                    for (String validCorrectAnswer : validCorrectAnswers)
+                        sb.append(highlightName(validCorrectAnswer, ANSI_RED_BOLD));
+                } else {
+                    sb.append("acceptable answers are");
+
+                    sb.append(":").append(NEW_LINE);
+
+                    for (String validCorrectAnswer : validCorrectAnswers)
+                        sb.append(highlightName(validCorrectAnswer, ANSI_RED_BOLD)).append(NEW_LINE);
+
+                    // delete last new line
+                    sb.delete(sb.length() - NEW_LINE.length(), sb.length());
+                }
+            } else if (timedOut)
                 sb.append("[ CORRECT ] ... but you took ")
                         .append(highlightName(String.valueOf(elapsedTime), ANSI_RED_BOLD))
                         .append(" seconds to answer the question, so it will be marked as wrong");
