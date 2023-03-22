@@ -257,17 +257,22 @@ public class CommandParser {
     }
 
     private static boolean isValidName(final String name) {
-        final Set<Character> eligible = Set.of('-', '(', ')', '_', '*', ',', '.');
+        if (name.equals(""))
+            return false;
+
+        final Set<Character> eligible = Set.of('-', '(', ')', '_', '*', ',', '.', ' ');
         boolean valid = true;
 
-        for (char c : name.toCharArray()) {
+        for (int i = 0; i < name.length(); i++) {
+            final char c = name.charAt(i);
+
             final boolean isLowercaseLetter = c >= 'a' && c <= 'z';
             final boolean isUppercaseLetter = c >= 'A' && c <= 'Z';
             final boolean isNumber = c >= '0' && c <= '9';
             final boolean isOtherEligibleCharacter = eligible.contains(c);
 
             valid &= (isLowercaseLetter || isUppercaseLetter ||
-                    isNumber || isOtherEligibleCharacter);
+                    isNumber || (c > 0 && isOtherEligibleCharacter));
         }
 
         return valid;
