@@ -6,6 +6,7 @@ import com.redsquare.flashfluency.system.DeckFileParser;
 import com.redsquare.flashfluency.system.FileIOHelper;
 import com.redsquare.flashfluency.system.Settings;
 import com.redsquare.flashfluency.system.exceptions.FFErrorMessages;
+import com.redsquare.flashfluency.system.exceptions.FlashFluencyLogicException;
 
 import java.io.*;
 import java.util.*;
@@ -57,13 +58,60 @@ public class Deck {
         }
     }
 
-    public void addFlashCard(final FlashCard flashCard) {
-        flashCards.put(flashCard.getClue(), flashCard);
+    public void addFlashCard(final FlashCard flashCard, final boolean isImported) {
+        try {
+            final String clue = flashCard.getClue();
+
+            if (flashCards.containsKey(clue))
+                throw FlashFluencyLogicException
+                        .attemptedToAddFlashCardWithDuplicateClue(clue);
+
+            flashCards.put(flashCard.getClue(), flashCard);
+
+            if (isImported)
+                CLIOutput.writeImportedFlashCard(flashCard);
+            else
+                CLIOutput.writeAddedFlashCard(flashCard);
+        } catch (FlashFluencyLogicException e) {
+            ExceptionMessenger.deliver(e);
+        }
+    }
+
+    public void removeFlashCard(final FlashCard flashCard) {
+        try {
+            if (!flashCards.containsValue(flashCard))
+                throw FlashFluencyLogicException
+                        .attemptedToRemoveFlashCardNotInDeck();
+
+            flashCards.remove(flashCard.getClue());
+            CLIOutput.writeRemovedFlashCard(flashCard);
+        } catch (FlashFluencyLogicException e) {
+            ExceptionMessenger.deliver(e);
+        }
     }
 
     public void addTag(final String tag) {
-        tags.add(tag);
-        CLIOutput.writeAddedTag(tag);
+        try {
+            if (tags.contains(tag))
+                throw FlashFluencyLogicException.attemptedToAddExistingTagToDeck(tag);
+
+            tags.add(tag);
+            CLIOutput.writeAddedTag(tag);
+        } catch (FlashFluencyLogicException e) {
+            ExceptionMessenger.deliver(e);
+        }
+    }
+
+    public void removeTag(final String tag) {
+        try {
+            if (!tags.contains(tag))
+                throw FlashFluencyLogicException.attemptedToRemoveTagNotInDeck(tag);
+
+            tags.remove(tag);
+            CLIOutput.writeRemovedTag(tag);
+        } catch (FlashFluencyLogicException e) {
+            ExceptionMessenger.deliver(e);
+        }
     }
 
     public void setDescription(String description) {
@@ -155,11 +203,15 @@ public class Deck {
         return flashCards.keySet();
     }
 
-    public Set<String> getFlashCardCodes() {
-        Set<String> codes = new HashSet<>();
+    public Optional<FlashCard> getFlashCardFromCode(final String code) {
+        for (final String flashCardClue : getFlashCardClues()) {
+            final FlashCard flashCard = flashCards.get(flashCardClue);
 
-        flashCards.keySet().forEach(x -> codes.add(flashCards.get(x).getCode()));
-        return codes;
+            if (flashCard.getCode().toUpperCase().equals(code.toUpperCase().trim()))
+                return Optional.of(flashCard);
+        }
+
+        return Optional.empty();
     }
 
     public FlashCard getFlashCard(String key) {
@@ -182,8 +234,7 @@ public class Deck {
                     continue;
 
                 FlashCard flashCard = FlashCard.createNew(fields[CLUE], fields[ANSWER]);
-                addFlashCard(flashCard);
-                CLIOutput.writeImportedFlashCard(flashCard);
+                addFlashCard(flashCard, true);
             }
         } catch (FileNotFoundException e) {
             ExceptionMessenger.deliver("The file \"" + filepath +
@@ -212,10 +263,6 @@ public class Deck {
         Set<String> keys = new HashSet<>(flashCards.keySet());
         keys.forEach(x -> flashCards.get(x).reset());
         CLIOutput.writeResetDeckMemorizationData(this);
-    }
-
-    public void removeTag(final String tag) {
-        tags.remove(tag);
     }
 
     public void prepForLesson(final boolean isSR) {

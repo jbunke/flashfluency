@@ -32,12 +32,12 @@ public class CLIOutput {
     private static final String ANSI_BLUE_BOLD = "\033[1;34m";   // BLUE
     private static final String ANSI_PURPLE_BOLD = "\033[1;35m"; // PURPLE
     private static final String ANSI_CYAN_BOLD = "\033[1;36m";   // CYAN
-    // private static final String ANSI_WHITE_BOLD = "\033[1;37m";  // WHITE
+    private static final String ANSI_GREY_BOLD = "\033[1;90m";  // GREY
 
     private static final String NAME_HIGHLIGHT_COLOR = ANSI_CYAN_BOLD,
             VALUE_HIGHLIGHT_COLOR = ANSI_PURPLE_BOLD,
             DIRECTORY_COLOR = ANSI_BLUE_BOLD, DECK_COLOR = ANSI_PURPLE_BOLD,
-            SETTING_COLOR = ANSI_YELLOW_BOLD;
+            SETTING_COLOR = ANSI_YELLOW_BOLD, ECHO_COLOR = ANSI_GREY_BOLD;
 
     private static void write(final String formatted, final boolean newLine) {
         System.out.print(formatted + ANSI_RESET + (newLine ? NEW_LINE : EMPTY));
@@ -121,8 +121,12 @@ public class CLIOutput {
         appendSectionTitle(sb, "Flash Card Table:");
         sb.append(NEW_LINE);
 
-        final String[] CATEGORIES = { "Clue", "Answer", "Due", "Status", "Promotion In", "Test Record", "ID Code" };
-        final int CAT_COUNT = CATEGORIES.length, SPACES_PER_CAT = 20, TABLE_WIDTH = CAT_COUNT * SPACES_PER_CAT;
+        final String[] CATEGORIES = {
+                "Clue", "Answer", "Due", "Status",
+                "Promotion In", "Test Record", "ID Code"
+        };
+        final int CAT_COUNT = CATEGORIES.length, SPACES_PER_CAT = 20,
+                TABLE_WIDTH = CAT_COUNT * SPACES_PER_CAT;
 
         final List<Function<FlashCard, String>> FUNCTIONS = List.of(
                 x -> {
@@ -146,7 +150,8 @@ public class CLIOutput {
                             : (d.isEqual(LocalDate.now())
                                     ? ANSI_YELLOW_BOLD
                                     : ANSI_GREEN_BOLD);
-                    String date = d.getDayOfMonth() + "-" + d.getMonthValue() + "-" + d.getYear();
+                    String date = d.getDayOfMonth() + "-" +
+                            d.getMonthValue() + "-" + d.getYear();
                     return dateColor + date + ANSI_RESET;
                 },
                 x -> potColor(x.getPot()) + x.getPot() + ANSI_RESET,
@@ -154,7 +159,8 @@ public class CLIOutput {
                     final int counter = x.getPotCounter();
                     return counter > 0 ? String.valueOf(counter) : "N/A";
                 },
-                x -> recordPercentageScore(x) + "%",
+                x -> recordPercentageScore(x) + "% (" + x.getCorrectInTests() +
+                        " / " + x.getAttemptedInTests() + ")",
                 FlashCard::getCode
         );
 
@@ -243,7 +249,7 @@ public class CLIOutput {
                 .replace(ANSI_BLUE_BOLD, EMPTY).replace(ANSI_CYAN_BOLD, EMPTY)
                 .replace(ANSI_GREEN_BOLD, EMPTY).replace(ANSI_PURPLE_BOLD, EMPTY)
                 .replace(ANSI_RED_BOLD, EMPTY).replace(ANSI_YELLOW_BOLD, EMPTY)
-                .replaceAll(NON_PRINTED_POSIX, EMPTY);
+                .replace(ANSI_GREY_BOLD, EMPTY).replaceAll(NON_PRINTED_POSIX, EMPTY);
     }
 
     private static void appendSectionTitle(StringBuilder sb, String sectionTitle) {
@@ -454,16 +460,32 @@ public class CLIOutput {
     }
 
     public static void writeUsernamePrompt() {
-        String color = ContextManager.getContext() instanceof FFDirectory ? DIRECTORY_COLOR : DECK_COLOR;
+        writeCommandPrompt(Settings.getUsername());
+    }
 
-        String s = color + "[ " +
-                ContextManager.getContext().getName() + " | " + Settings.getUsername() + " ] > ";
+    public static void writeEchoPrompt() {
+        writeCommandPrompt("ECHO");
+    }
+
+    public static void writeCommandEcho(final String command) {
+        final String s = ECHO_COLOR + command;
+        write(s, true);
+    }
+
+    private static void writeCommandPrompt(final String username) {
+        final String color = ContextManager.getContext() instanceof FFDirectory
+                ? DIRECTORY_COLOR
+                : DECK_COLOR;
+
+        final String s = color + "[ " + ContextManager.getContext().getName() +
+                " | " + username + " ] > ";
         write(s, false);
     }
 
     public static void writeCardRepeatNotification(int lessonCounter) {
-        String s = ANSI_YELLOW_BOLD + "[ This card will repeat at least ("
-                + lessonCounter + ") more times. ]" ;
+        String s = ANSI_YELLOW_BOLD + "This card will repeat at least " +
+                lessonCounter + " more time" +
+                (lessonCounter == 1 ? EMPTY : "s") ;
         write(s, true);
     }
 
@@ -496,7 +518,7 @@ public class CLIOutput {
             if (Settings.isInTimedMode())
                 sb.append(NEW_LINE).append(DECK_COLOR).append("Answered in ")
                         .append(highlightName(String.valueOf(elapsedTime), DECK_COLOR))
-                        .append(" seconds");
+                        .append(" second").append(elapsedTime == 1 ? EMPTY : "s");
         } else {
             sb.append(ANSI_RED_BOLD);
 
@@ -613,20 +635,28 @@ public class CLIOutput {
         write(s, false);
     }
 
-    public static void writeAddedFlashCard(FlashCard flashCard) {
-        String s = DECK_COLOR + "Added flash card: [ CLUE ] : " +
-                highlightName(flashCard.getClue(), DECK_COLOR) + " , [ ANSWER ] : " +
-                highlightName(flashCard.getAnswer(), DECK_COLOR);
-
-        write(s, true);
+    public static void writeAddedFlashCard(final FlashCard flashCard) {
+        writeFlashCardAction("Added", flashCard, true);
     }
 
-    public static void writeImportedFlashCard(FlashCard flashCard) {
-        String s = DECK_COLOR + "Imported flash card: [ CLUE ] : " +
-                highlightName(flashCard.getClue(), DECK_COLOR) + " , [ ANSWER ] : " +
-                highlightName(flashCard.getAnswer(), DECK_COLOR);
+    public static void writeImportedFlashCard(final FlashCard flashCard) {
+        writeFlashCardAction("Imported", flashCard, false);
+    }
 
-        write(s, true);
+    public static void writeRemovedFlashCard(final FlashCard flashCard) {
+        writeFlashCardAction("Removed", flashCard, true);
+    }
+
+    private static void writeFlashCardAction(
+            final String action, final FlashCard flashCard, final boolean borders
+    ) {
+        String s = (borders ? borderLine() : EMPTY) +
+                DECK_COLOR + action.trim() + " flash card: [ CLUE ] : " +
+                highlightName(flashCard.getClue(), DECK_COLOR) + " , [ ANSWER ] : " +
+                highlightName(flashCard.getAnswer(), DECK_COLOR) + NEW_LINE +
+                (borders ? borderLine() : EMPTY);
+
+        write(s, false);
     }
 
     public static void writeSavedDeck(final Deck deck, final String filepath) {
@@ -849,34 +879,38 @@ public class CLIOutput {
         write(s, false);
     }
 
-    public static void writeDeleteAreYouSurePrompt(
-            final String name, final boolean isDeck, final String typeToDelete
+    public static void writeDeleteContextAreYouSurePrompt(
+            final String name, final boolean isDeck, final String TYPE_TO_DELETE
     ) {
         final String color = isDeck ? DECK_COLOR : DIRECTORY_COLOR;
 
         String s = color + "Are you sure you want to delete the " +
                 (isDeck ? "deck " : "directory ") + highlightName(name, color) +
-                "? Type " + ANSI_RED_BOLD + typeToDelete + color + " to delete: ";
+                "? Type " + ANSI_RED_BOLD + TYPE_TO_DELETE + color + " to delete: ";
 
         write(s, false);
     }
 
     public static void writePruneAreYouSurePrompt(
-            final String name, final String typeToDelete
+            final String name, final String TYPE_TO_DELETE
     ) {
         String s = DIRECTORY_COLOR +
                 "Are you sure you want to prune all empty directories accessible via " +
                 highlightName(name, DIRECTORY_COLOR) + "? Type " +
-                ANSI_RED_BOLD + typeToDelete + DIRECTORY_COLOR + " to prune: ";
+                ANSI_RED_BOLD + TYPE_TO_DELETE + DIRECTORY_COLOR + " to prune: ";
 
         write(s, false);
     }
 
-    public static void writePrunedNotification(final String name) {
-        String s = borderLine() + DIRECTORY_COLOR +
-                "Pruned all empty directories accessible via directory " +
-                highlightName(name, DIRECTORY_COLOR) + "." + NEW_LINE +
-                borderLine();
+    public static void writeRemoveFlashCardAreYouSurePrompt(
+            final FlashCard flashCard, final String TYPE_TO_REMOVE
+    ) {
+        String s = DECK_COLOR + "[ CLUE ] : " + highlightName(flashCard.getClue(), DECK_COLOR) +
+                " , [ ANSWER ] : " + highlightName(flashCard.getAnswer(), DECK_COLOR) +
+                NEW_LINE +
+                "Are you sure you want to remove this flash card from the deck? Type " +
+                ANSI_RED_BOLD + TYPE_TO_REMOVE + DECK_COLOR + " to remove: ";
+
         write(s, false);
     }
 
@@ -889,6 +923,21 @@ public class CLIOutput {
                 (isDeck ? "deck " : "directory ") +
                 highlightName(name, color) + " was " +
                 (deleted ? "" : "not ") + "deleted." +
+                NEW_LINE + borderLine();
+        write(s, false);
+    }
+
+    public static void writePrunedNotification(final String name) {
+        String s = borderLine() + DIRECTORY_COLOR +
+                "Pruned all empty directories accessible via directory " +
+                highlightName(name, DIRECTORY_COLOR) + "." + NEW_LINE +
+                borderLine();
+        write(s, false);
+    }
+
+    public static void writeDidNotRemoveFlashCardNotification() {
+        String s = borderLine() + DECK_COLOR +
+                "The flash card was not deleted." +
                 NEW_LINE + borderLine();
         write(s, false);
     }

@@ -97,4 +97,43 @@ public class FlashFluencyLogicException extends FlashFluencyException {
                 false, CONSEQUENCE_COMMAND_NOT_EXECUTED
         );
     }
+
+    public static FlashFluencyLogicException attemptedToAddExistingTagToDeck(
+            final String tag) {
+        return new FlashFluencyLogicException(
+                "This deck is already labelled with the tag \"" + tag + "\".", false,
+                CONSEQUENCE_COMMAND_NOT_EXECUTED
+        );
+    }
+
+    public static FlashFluencyLogicException attemptedToRemoveTagNotInDeck(
+            final String tag) {
+        return new FlashFluencyLogicException(
+                "This deck is not labelled with the tag \"" + tag +
+                        "\" that you are trying to remove.", false,
+                CONSEQUENCE_COMMAND_NOT_EXECUTED
+        );
+    }
+
+    public static FlashFluencyLogicException attemptedToAddFlashCardWithDuplicateClue(
+            final String clue) {
+        return new FlashFluencyLogicException(
+                "This deck is already has a flash card with the clue \"" + clue + "\".",
+                false, CONSEQUENCE_COMMAND_NOT_EXECUTED
+        );
+    }
+
+    public static FlashFluencyLogicException attemptedToRemoveFlashCardNotInDeck() {
+        return new FlashFluencyLogicException(
+                "This deck does not contain the flash card you are trying to remove.",
+                false, CONSEQUENCE_COMMAND_NOT_EXECUTED
+        );
+    }
+
+    public static FlashFluencyLogicException noFlashCardMatchingCode(final String code) {
+        return new FlashFluencyLogicException(
+                "This deck does not contain a flash card with the ID code \"" +
+                        code + "\".", false, CONSEQUENCE_COMMAND_NOT_EXECUTED
+        );
+    }
 }
