@@ -21,7 +21,11 @@ public class MathHelper {
         return boundedRandom(exclusiveMaxBound);
     }
 
-    private static int boundedRandom(final int max) {
+    public static int boundedRandom(final int max) {
         return (int)(r.nextDouble() * max);
+    }
+
+    public static boolean p(final double probability) {
+        return r.nextDouble() < probability;
     }
 }

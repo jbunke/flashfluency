@@ -16,7 +16,8 @@ public class DeckFileParser {
     // TODO: Consider possibility of making separators escape characters to permit
     // TODO: their usage between fields as legitimate data characters.
     private static final String FIELD_SEPARATOR = ";",
-            TAG_SEPARATOR = ",", DATE_SEPARATOR = "-", EMPTY_TAG_FILTER = "";
+            TAG_SEPARATOR = ",", DATE_SEPARATOR = "-",
+            RECORD_SEPARATOR = "/", EMPTY = "";
 
     // line indices
     private static final int DESCRIPTION_INDEX = 0, TAGS_INDEX = 1,
@@ -24,7 +25,8 @@ public class DeckFileParser {
 
     // field indices
     private static final int CLUE = 0, ANSWER = 1, INTRODUCED = 2,
-            DUE = 3, POT = 4, POT_COUNTER = 5, NUM_FIELDS = 6;
+            DUE = 3, POT = 4, POT_COUNTER = 5, RECORD = 6, CODE = 7,
+            NUM_FIELDS = 8, NUM_FIELDS_OLD = 6;
 
     // date indices
     private static final int DAY = 0, MONTH = 1, YEAR = 2;
@@ -70,7 +72,7 @@ public class DeckFileParser {
             String tagString = l.substring((KEYWORD_TAGS + Settings.SETTING_SEPARATOR).length());
 
             Set<String> tags = new HashSet<>(Arrays.stream(tagString.split(TAG_SEPARATOR)).toList());
-            tags.remove(EMPTY_TAG_FILTER);
+            tags.remove(EMPTY);
 
             return tags;
         } else
@@ -84,29 +86,58 @@ public class DeckFileParser {
             for (int i = FLASH_CARDS_INDEX + 1; i < lines.size(); i++) {
                 String l = lines.get(i).trim();
 
-                if (l.equals(""))
+                if (l.equals(EMPTY))
                     break;
 
                 String[] fields = l.split(FIELD_SEPARATOR);
 
-                if (fields.length != NUM_FIELDS)
+                if (fields.length == NUM_FIELDS)
+                    flashCards.put(fields[CLUE], parseFlashCard(fields, false));
+                // so that deck files from pre-0.2 don't break on startup
+                else if (fields.length == NUM_FIELDS_OLD)
+                    flashCards.put(fields[CLUE], parseFlashCard(fields, true));
+                else
                     throw InvalidDeckFileFormatException.flashCardsImproperlyFormatted(deckFile.getFilepath());
-
-                String clue = fields[CLUE], answer = fields[ANSWER];
-                boolean introduced = Boolean.parseBoolean(fields[INTRODUCED]);
-                String[] date = fields[DUE].split(DATE_SEPARATOR);
-                LocalDate due = LocalDate.of(Integer.parseInt(date[YEAR]),
-                        Integer.parseInt(date[MONTH]), Integer.parseInt(date[DAY]));
-                Pot pot = Pot.valueOf(fields[POT]);
-                int potCounter = Integer.parseInt(fields[POT_COUNTER]);
-
-                flashCards.put(clue,
-                        FlashCard.fromParsedDeckFile(clue, answer, introduced, due, pot, potCounter));
             }
 
             return flashCards;
         } else
             throw InvalidDeckFileFormatException.flashCardsImproperlyFormatted(deckFile.getFilepath());
+    }
+
+    private static FlashCard parseFlashCard(final String[] fields, final boolean oldEncoding) {
+        final String clue = fields[CLUE], answer = fields[ANSWER];
+        boolean introduced = Boolean.parseBoolean(fields[INTRODUCED]);
+
+        final String[] date = fields[DUE].split(DATE_SEPARATOR);
+        final LocalDate due = LocalDate.of(Integer.parseInt(date[YEAR]),
+                Integer.parseInt(date[MONTH]), Integer.parseInt(date[DAY]));
+
+        final Pot pot = Pot.valueOf(fields[POT]);
+        final int potCounter = Integer.parseInt(fields[POT_COUNTER]);
+
+        if (oldEncoding)
+            return FlashCard.fromParsedDeckFile(clue, answer,
+                    introduced, due, pot, potCounter,
+                    0, 0, FlashCard.generateNewCode());
+
+        final int CORRECT = 0, ATTEMPTED = 1, NUMERATOR_AND_DENOMINATOR = 2;
+        final String[] record = fields[RECORD].split(RECORD_SEPARATOR);
+        final int correctInTests, attemptedInTests;
+
+        if (record.length != NUMERATOR_AND_DENOMINATOR) {
+            correctInTests = 0;
+            attemptedInTests = 0;
+        } else {
+            correctInTests = Integer.parseInt(record[CORRECT]);
+            attemptedInTests = Integer.parseInt(record[ATTEMPTED]);
+        }
+
+        final String code = fields[CODE];
+
+        return FlashCard.fromParsedDeckFile(clue, answer,
+                introduced, due, pot, potCounter,
+                correctInTests, attemptedInTests, code);
     }
 
     public static void saveToFile(String filepath, String description,
@@ -133,7 +164,9 @@ public class DeckFileParser {
             String fc = f.getClue() + FIELD_SEPARATOR + f.getAnswer() +
                     FIELD_SEPARATOR + f.isIntroduced() + FIELD_SEPARATOR +
                     getStringFromLocalDate(f.getDue()) + FIELD_SEPARATOR +
-                    f.getPot() + FIELD_SEPARATOR + f.getPotCounter();
+                    f.getPot() + FIELD_SEPARATOR + f.getPotCounter() +
+                    FIELD_SEPARATOR + f.getCorrectInTests() + RECORD_SEPARATOR +
+                    f.getAttemptedInTests() + FIELD_SEPARATOR + f.getCode();
             fcs.add(fc);
         });
 

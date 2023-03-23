@@ -89,28 +89,24 @@ public class CLIOutput {
 
         appendSectionTitle(sb, "Breakdown:");
 
-        String color = deckPercentageScoreColor(deck);
-
         sb.append(ANSI_CYAN_BOLD).append(deck.getNumOfFlashCards())
                 .append(ANSI_RESET).append(" total flash cards; ")
                 .append(ANSI_PURPLE_BOLD).append(deck.getNumDueFlashCards())
                 .append(ANSI_RESET).append(" due; ")
-                .append(color).append(deck.getPercentageScore())
-                .append(ANSI_RESET).append("% memorized");
+                .append(deckPercentageScore(deck)).append("% memorized");
         sb.append(NEW_LINE).append("(");
 
         final Pot[] pots = { Pot.A, Pot.B, Pot.C, Pot.D, Pot.F, Pot.NEW };
         int processed = 0;
 
         for (Pot pot : pots) {
-            color = potColor(pot);
-
             int cardsInPot = deck.getNumFlashCardsInPot(pot);
 
             if (processed > 0)
                 sb.append(", ");
 
-            sb.append(cardsInPot).append("x ").append(color).append(pot).append(ANSI_RESET);
+            sb.append(cardsInPot).append("x ").append(potColor(pot))
+                    .append(pot).append(ANSI_RESET);
             processed++;
         }
 
@@ -125,9 +121,8 @@ public class CLIOutput {
         appendSectionTitle(sb, "Flash Card Table:");
         sb.append(NEW_LINE);
 
-        final int CAT_COUNT = 5, SPACES_PER_CAT = 20;
-
-        final String[] CATEGORIES = { "Clue", "Answer", "Due", "Status", "Promotion In" };
+        final String[] CATEGORIES = { "Clue", "Answer", "Due", "Status", "Promotion In", "Test Record", "ID Code" };
+        final int CAT_COUNT = CATEGORIES.length, SPACES_PER_CAT = 20, TABLE_WIDTH = CAT_COUNT * SPACES_PER_CAT;
 
         final List<Function<FlashCard, String>> FUNCTIONS = List.of(
                 x -> {
@@ -158,7 +153,10 @@ public class CLIOutput {
                 x -> {
                     final int counter = x.getPotCounter();
                     return counter > 0 ? String.valueOf(counter) : "N/A";
-                });
+                },
+                x -> recordPercentageScore(x) + "%",
+                FlashCard::getCode
+        );
 
         final String WHITESPACE = " ";
 
@@ -173,7 +171,9 @@ public class CLIOutput {
             catSB.append(WHITESPACE.repeat(whitespacesToAdd));
         }
 
-        sb.append(catSB).append(NEW_LINE).append(borderLine());
+        sb.append(catSB).append(NEW_LINE)
+                .append(BORDER_TICK.repeat(TABLE_WIDTH / BORDER_TICK.length()))
+                .append(NEW_LINE);
 
         List<String> fs = new ArrayList<>(deck.getFlashCardClues());
         fs.sort(Comparator.naturalOrder());
@@ -194,7 +194,9 @@ public class CLIOutput {
                 flSB.append(followingWhitespace);
             }
 
-            sb.append(flSB).append(NEW_LINE).append(borderLine());
+            sb.append(flSB).append(NEW_LINE)
+                    .append(BORDER_TICK.repeat(TABLE_WIDTH / BORDER_TICK.length()))
+                    .append(NEW_LINE);
 
             Set<String> cluePermutations = QAParser.validOptionsForQADefinition(
                     QAParser.removeBrackets(fc.getClue()));
@@ -225,8 +227,14 @@ public class CLIOutput {
             for (String answer : acceptableAnswerPermutations)
                 sb.append(highlightName(answer, ANSI_RESET)).append(NEW_LINE);
 
-            sb.append(borderLine());
+            sb.append(BORDER_TICK.repeat(TABLE_WIDTH / BORDER_TICK.length()))
+                    .append(NEW_LINE);
         }
+
+        final int lastBorderExcess = (TABLE_WIDTH -
+                (BORDER_TICK_NUM * BORDER_TICK.length())) + NEW_LINE.length();
+        sb.delete(sb.length() - lastBorderExcess, sb.length());
+        sb.append(NEW_LINE);
     }
 
     private static String replaceAllNonPrinted(final String s) {
@@ -414,29 +422,35 @@ public class CLIOutput {
         write(sb.toString(), false);
     }
 
-    private static String deckInLine(Deck deck) {
+    private static String deckInLine(final Deck deck) {
         return DECK_COLOR + deck.getName() +
                 ANSI_RESET + " [ " +
                 ANSI_PURPLE_BOLD + deck.getNumDueFlashCards() +
-                ANSI_RESET + " due, " +
-                deckPercentageScoreColor(deck) + deck.getPercentageScore() +
-                ANSI_RESET + "% memorized ]";
+                ANSI_RESET + " due, " + deckPercentageScore(deck) +
+                "% memorized ]";
     }
 
-    private static String deckPercentageScoreColor(Deck deck) {
+    private static String deckPercentageScore(final Deck deck) {
         final int percentage = deck.getPercentageScore();
-        String color;
 
+        return getPercentageScoreColor(percentage) + percentage + ANSI_RESET;
+    }
+
+    private static String recordPercentageScore(final FlashCard flashCard) {
+        final int percentage = flashCard.getRecordPercentage();
+
+        return getPercentageScoreColor(percentage) + percentage + ANSI_RESET;
+    }
+
+    private static String getPercentageScoreColor(final int percentage) {
         if (percentage > 80)
-            color = ANSI_CYAN_BOLD;
+            return ANSI_CYAN_BOLD;
         else if (percentage > 55)
-            color = ANSI_GREEN_BOLD;
+            return ANSI_GREEN_BOLD;
         else if (percentage > 30)
-            color = ANSI_YELLOW_BOLD;
+            return ANSI_YELLOW_BOLD;
         else
-            color = ANSI_RED_BOLD;
-
-        return color;
+            return ANSI_RED_BOLD;
     }
 
     public static void writeUsernamePrompt() {
@@ -889,10 +903,10 @@ public class CLIOutput {
         write(s, false);
     }
 
-    public static void writeWelcomeMessage() {
+    public static void writeWelcomeMessage(final String version) {
         String s = borderLine() + DIRECTORY_COLOR + "Welcome to Flash Fluency!" + NEW_LINE +
                 "Flash Fluency is a flash card spaced repetition memorization program." + NEW_LINE +
-                "Jordan Bunke (2022)" + NEW_LINE +
+                "Jordan Bunke (2022) | v" + version + NEW_LINE +
                 "Type " + highlightName(CommandParser.CMD_HELP, DIRECTORY_COLOR) + " to get started." +
                 NEW_LINE + borderLine();
         write(s, false);

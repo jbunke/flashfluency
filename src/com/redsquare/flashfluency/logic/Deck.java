@@ -155,11 +155,11 @@ public class Deck {
         return flashCards.keySet();
     }
 
-    public Set<String> getFlashCardAnswers() {
-        Set<String> answers = new HashSet<>();
+    public Set<String> getFlashCardCodes() {
+        Set<String> codes = new HashSet<>();
 
-        flashCards.keySet().forEach(x -> answers.add(flashCards.get(x).getAnswer()));
-        return answers;
+        flashCards.keySet().forEach(x -> codes.add(flashCards.get(x).getCode()));
+        return codes;
     }
 
     public FlashCard getFlashCard(String key) {
