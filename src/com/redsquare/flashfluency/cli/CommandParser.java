@@ -77,13 +77,13 @@ public class CommandParser {
         else if (command.startsWith(CMD_QUIT))
             ContextManager.quit();
         else if (command.startsWith(CMD_LIST))
-            parseListCommand(
-                    command.length() > CMD_LIST.length() ?
-                            getRemaining(command, CMD_LIST + ARG_SEPARATOR) :
-                            ""
-            );
+            parseListCommand(command.length() > CMD_LIST.length()
+                    ? getRemaining(command, CMD_LIST + ARG_SEPARATOR)
+                    : "");
         else if (command.startsWith(CMD_VIEW))
-            parseDeckCommand(CLIOutput::writeDeck);
+            parseViewCommand(command.length() > CMD_VIEW.length()
+                    ? getRemaining(command, CMD_VIEW + ARG_SEPARATOR)
+                    : "");
         else if (command.startsWith(CMD_CLEAR))
             parseDeckCommand(Deck::clearDeck);
         else if (command.startsWith(CMD_RESET))
@@ -130,6 +130,10 @@ public class CommandParser {
 
     private static void parseListCommand(final String remaining) {
         parseDirectoryCommand(CLIOutput::writeDirectoryList, remaining);
+    }
+
+    private static void parseViewCommand(final String remaining) {
+        parseDeckCommand(CLIOutput::writeDeck, remaining);
     }
 
     private static void parseRemoveCommand(String remaining) {

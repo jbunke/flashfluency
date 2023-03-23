@@ -67,7 +67,10 @@ public class CLIOutput {
         };
     }
 
-    public static void writeDeck(Deck deck) {
+    public static void writeDeck(final Deck deck, final String flag) {
+        final String FLAG_SHORT = "-s";
+        final boolean shortened = flag.equals(FLAG_SHORT);
+
         StringBuilder sb = new StringBuilder();
 
         sb.append(borderLine());
@@ -112,12 +115,14 @@ public class CLIOutput {
 
         sb.append(")").append(NEW_LINE).append(borderLine());
 
-        writeDeckTable(deck, sb);
+        writeDeckTable(deck, sb, shortened);
 
         write(sb.toString(), false);
     }
 
-    private static void writeDeckTable(final Deck deck, final StringBuilder sb) {
+    private static void writeDeckTable(
+            final Deck deck, final StringBuilder sb, final boolean shortened
+    ) {
         appendSectionTitle(sb, "Flash Card Table:");
         sb.append(NEW_LINE);
 
@@ -203,6 +208,8 @@ public class CLIOutput {
             sb.append(flSB).append(NEW_LINE)
                     .append(BORDER_TICK.repeat(TABLE_WIDTH / BORDER_TICK.length()))
                     .append(NEW_LINE);
+
+            if (shortened) continue;
 
             Set<String> cluePermutations = QAParser.validOptionsForQADefinition(
                     QAParser.removeBrackets(fc.getClue()));
