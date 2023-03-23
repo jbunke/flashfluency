@@ -5,8 +5,7 @@ import com.redsquare.flashfluency.system.Settings;
 import java.time.LocalDate;
 
 public class FlashCard {
-    private final String clue;
-    private final String answer;
+    private final String clue, answer, code;
 
     private boolean introduced;
     private LocalDate due;
@@ -16,27 +15,67 @@ public class FlashCard {
 
     private int lessonCounter;
 
-    private FlashCard(String clue, String answer, boolean introduced, LocalDate due, Pot pot, int potCounter) {
+    private int correctInTests, attemptedInTests;
+
+    private FlashCard(
+            final String clue, final String answer, final boolean introduced,
+            final LocalDate due, final Pot pot, final int potCounter,
+            final int correctInTests, final int attemptedInTests, final String code
+    ) {
         // new flash card constructor
         this.clue = clue;
         this.answer = answer;
+        this.code = code;
 
         this.introduced = introduced;
         this.due = due;
         this.pot = pot;
         this.potCounter = potCounter;
 
+        this.correctInTests = correctInTests;
+        this.attemptedInTests = attemptedInTests;
+
         initializeLessonCounter();
     }
 
     public static FlashCard createNew(String clue, String answer) {
         return new FlashCard(clue, answer, false, LocalDate.now(),
-                Pot.NEW, Pot.NEW.answersForPromotion());
+                Pot.NEW, Pot.NEW.answersForPromotion(),
+                0, 0, generateNewCode());
     }
 
-    public static FlashCard fromParsedDeckFile(String clue, String answer, boolean introduced,
-                                               LocalDate due, Pot pot, int potCounter) {
-        return new FlashCard(clue, answer, introduced, due, pot, potCounter);
+    public static FlashCard fromParsedDeckFile(
+            final String clue, final String answer, final boolean introduced,
+            final LocalDate due, final Pot pot, final int potCounter,
+            final int correctInTests, final int attemptedInTests, final String code
+    ) {
+        return new FlashCard(clue, answer, introduced, due, pot, potCounter,
+                correctInTests, attemptedInTests, code);
+    }
+
+    public static String generateNewCode() {
+        final int DIGITS = 8;
+        final StringBuilder code = new StringBuilder();
+        final double NUM_PROB = 0.3;
+
+        for (int i = 0; i < DIGITS; i++) {
+            final int spread;
+            final char min, max;
+
+            if (MathHelper.p(NUM_PROB)) {
+                min = '0';
+                max = '9';
+            } else {
+                min = 'A';
+                max = 'Z';
+            }
+
+            spread = (max - min) + 1;
+            final char digit = (char)(min + MathHelper.boundedRandom(spread));
+            code.append(digit);
+        }
+
+        return code.toString();
     }
 
     public void initializeLessonCounter() {
@@ -53,6 +92,12 @@ public class FlashCard {
             correctAdjustment();
         else
             incorrectAdjustment();
+    }
+
+    public void updateRecord(final boolean correct) {
+        attemptedInTests++;
+        if (correct)
+            correctInTests++;
     }
 
     private void correctAdjustment() {
@@ -80,6 +125,10 @@ public class FlashCard {
 
     public String getAnswer() {
         return answer;
+    }
+
+    public String getCode() {
+        return code;
     }
 
     public boolean isIntroduced() {
@@ -125,6 +174,21 @@ public class FlashCard {
 
     public int getLessonCounter() {
         return lessonCounter;
+    }
+
+    public int getCorrectInTests() {
+        return correctInTests;
+    }
+
+    public int getAttemptedInTests() {
+        return attemptedInTests;
+    }
+
+    public int getRecordPercentage() {
+        if (attemptedInTests == 0)
+            return 0;
+        else
+            return (int)(100 * (correctInTests / (float)attemptedInTests));
     }
 
     @Override

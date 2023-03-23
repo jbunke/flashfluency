@@ -16,6 +16,7 @@ public class ContextManager {
     private static FFFile context;
     private static boolean inLesson;
 
+    private static final String VERSION = "0.2";
     private static final int EXIT_CODE_EXPECTED = 0;
 
     public static void main(String[] args) {
@@ -44,7 +45,7 @@ public class ContextManager {
 
     private static void startUp() {
         try {
-            CLIOutput.writeWelcomeMessage();
+            CLIOutput.writeWelcomeMessage(VERSION);
             Settings.loadSettings();
             Settings.loadDirectory();
             initializeContext();

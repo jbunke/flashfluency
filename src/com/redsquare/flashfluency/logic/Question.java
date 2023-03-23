@@ -93,6 +93,8 @@ public class Question {
 
             if (SR)
                 flashCard.adjustFromAnswer(correct);
+            else
+                flashCard.updateRecord(correct);
         } catch (FlashFluencyLogicException e) {
             ExceptionMessenger.deliver(e);
         }
