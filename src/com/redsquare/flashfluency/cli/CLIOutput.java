@@ -211,12 +211,16 @@ public class CLIOutput {
 
             if (shortened) continue;
 
-            Set<String> cluePermutations = QAParser.validOptionsForQADefinition(
-                    QAParser.removeBrackets(fc.getClue()));
-            Set<String> acceptableAnswerPermutations = QAParser.validOptionsForQADefinition(
-                    Settings.isIgnoringBracketed()
-                            ? fc.getAnswer()
-                            : QAParser.removeBrackets(fc.getAnswer()));
+            List<String> cluePermutations = new ArrayList<>(
+                    QAParser.validOptionsForQADefinition(
+                            QAParser.removeBrackets(fc.getClue())));
+            List<String> acceptableAnswerPermutations = new ArrayList<>(
+                    QAParser.validOptionsForQADefinition(
+                            Settings.isIgnoringBracketed()
+                                    ? fc.getAnswer()
+                                    : QAParser.removeBrackets(fc.getAnswer())));
+            cluePermutations.sort(Comparator.naturalOrder());
+            acceptableAnswerPermutations.sort(Comparator.naturalOrder());
 
             sb.append(VALUE_HIGHLIGHT_COLOR).append("CLUE");
 
