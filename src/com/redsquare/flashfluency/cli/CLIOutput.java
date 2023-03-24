@@ -636,13 +636,15 @@ public class CLIOutput {
         write(sb.toString(), false);
     }
 
-    public static void writeNewFlashCardCluePrompt() {
-        String s = DECK_COLOR + "Clue for new flash card: ";
+    public static void writeNewFlashCardCluePrompt(final boolean isUpdate) {
+        String s = DECK_COLOR + (isUpdate ? "Updated c" : "C") +
+                "lue for" + (isUpdate ? " " : " new ") + "flash card: ";
         write(s, false);
     }
 
-    public static void writeNewFlashCardAnswerPrompt() {
-        String s = DECK_COLOR + "Answer for new flash card: ";
+    public static void writeNewFlashCardAnswerPrompt(final boolean isUpdate) {
+        String s = DECK_COLOR + (isUpdate ? "Updated answer" : "Answer") +
+                " for" + (isUpdate ? " " : " new ") + "flash card: ";
         write(s, false);
     }
 
@@ -925,6 +927,18 @@ public class CLIOutput {
         write(s, false);
     }
 
+    public static void writeEditFlashCardAreYouSurePrompt(
+            final FlashCard flashCard, final String TYPE_TO_REMOVE
+    ) {
+        String s = DECK_COLOR + "[ CLUE ] : " + highlightName(flashCard.getClue(), DECK_COLOR) +
+                " , [ ANSWER ] : " + highlightName(flashCard.getAnswer(), DECK_COLOR) +
+                NEW_LINE +
+                "Are you sure you want to edit the contents of this flash card? Type " +
+                ANSI_RED_BOLD + TYPE_TO_REMOVE + DECK_COLOR + " to edit: ";
+
+        write(s, false);
+    }
+
     public static void writeFileDeletedNotification(
             final String name, final boolean isDeck, final boolean deleted
     ) {
@@ -948,7 +962,14 @@ public class CLIOutput {
 
     public static void writeDidNotRemoveFlashCardNotification() {
         String s = borderLine() + DECK_COLOR +
-                "The flash card was not deleted." +
+                "The flash card was not removed." +
+                NEW_LINE + borderLine();
+        write(s, false);
+    }
+
+    public static void writeDidNotEditFlashCardNotification() {
+        String s = borderLine() + DECK_COLOR +
+                "The flash card was not edited or modified." +
                 NEW_LINE + borderLine();
         write(s, false);
     }

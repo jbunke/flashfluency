@@ -5,7 +5,8 @@ import com.redsquare.flashfluency.system.Settings;
 import java.time.LocalDate;
 
 public class FlashCard {
-    private final String clue, answer, code;
+    private String clue, answer;
+    private final String code;
 
     private boolean introduced;
     private LocalDate due;
@@ -129,6 +130,14 @@ public class FlashCard {
 
     public String getCode() {
         return code;
+    }
+
+    public void setClue(final String clue) {
+        this.clue = clue;
+    }
+
+    public void setAnswer(final String answer) {
+        this.answer = answer;
     }
 
     public boolean isIntroduced() {

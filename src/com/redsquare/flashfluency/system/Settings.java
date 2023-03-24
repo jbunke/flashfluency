@@ -306,6 +306,7 @@ public class Settings {
         if (!matchFound) {
             if (settingID.equals(KEYWORD_USERNAME)) {
                 username = value;
+                matchFound = true;
             } // extensible with else-ifs here
         }
 

@@ -90,8 +90,10 @@ public class CommandParser {
             parseDeckCommand(Deck::resetMemorizationData);
         else if (command.startsWith(CMD_SAVE))
             parseDeckCommand(Deck::saveDeck);
-        else if (command.startsWith(CMD_EDIT))
-            parseEditCommand();
+        else if (command.startsWith(CMD_EDIT + ARG_SEPARATOR + FLASH_CARD + ARG_SEPARATOR))
+            parseEditFlashCardCommand(getRemaining(command, CMD_EDIT + ARG_SEPARATOR + FLASH_CARD + ARG_SEPARATOR));
+        else if (command.equals(CMD_EDIT))
+            parseEditDescriptionCommand();
         else if (command.startsWith(CMD_DELETE))
             parseDeleteCommand();
         else if (command.startsWith(CMD_PRUNE))
@@ -136,7 +138,7 @@ public class CommandParser {
         parseDeckCommand(CLIOutput::writeDeck, remaining);
     }
 
-    private static void parseRemoveCommand(String remaining) {
+    private static void parseRemoveCommand(final String remaining) {
         if (remaining.startsWith(TAG)) {
             final String tag = getRemaining(remaining, TAG);
             parseDeckCommand(Deck::removeTag, tag);
@@ -152,21 +154,50 @@ public class CommandParser {
                     final FlashCard flashCard = flashCardIfFound.get();
 
                     CLIOutput.writeRemoveFlashCardAreYouSurePrompt(flashCard, TYPE_TO_REMOVE);
-                    final String answer = CLIInput.readInput().trim().toUpperCase();
-                    final boolean decisionToDelete = answer.equals(TYPE_TO_REMOVE);
+                    final String response = CLIInput.readInput().trim().toUpperCase();
+                    final boolean decisionToRemove = response.equals(TYPE_TO_REMOVE);
 
-                    if (decisionToDelete)
+                    if (decisionToRemove)
                         deck.removeFlashCard(flashCard);
                     else
                         CLIOutput.writeDidNotRemoveFlashCardNotification();
                 } else
                     throw FlashFluencyLogicException.noFlashCardMatchingCode(flashCardCode);
-
             } catch (FlashFluencyLogicException e) {
                 ExceptionMessenger.deliver(e);
             }
-        } else {
+        } else
             ExceptionMessenger.deliver(FlashFluencyLogicException.invalidArgumentName());
+    }
+
+    private static void parseEditFlashCardCommand(final String flashCardCode) {
+        final String TYPE_TO_EDIT = "YES";
+
+        try {
+            final Deck deck = getDeck();
+            final Optional<FlashCard> flashCardIfFound = deck.getFlashCardFromCode(flashCardCode);
+
+            if (flashCardIfFound.isPresent()) {
+                final FlashCard flashCard = flashCardIfFound.get();
+
+                CLIOutput.writeEditFlashCardAreYouSurePrompt(flashCard, TYPE_TO_EDIT);
+                final String response = CLIInput.readInput().trim().toUpperCase();
+                final boolean decisionToEdit = response.equals(TYPE_TO_EDIT);
+
+                if (decisionToEdit) {
+                    CLIOutput.writeNewFlashCardCluePrompt(true);
+                    String clue = CLIInput.readInput();
+                    CLIOutput.writeNewFlashCardAnswerPrompt(true);
+                    String answer = CLIInput.readInput();
+
+                    flashCard.setClue(clue);
+                    flashCard.setAnswer(answer);
+                } else
+                    CLIOutput.writeDidNotEditFlashCardNotification();
+            } else
+                throw FlashFluencyLogicException.noFlashCardMatchingCode(flashCardCode);
+        } catch (FlashFluencyLogicException e) {
+            ExceptionMessenger.deliver(e);
         }
     }
 
@@ -216,7 +247,7 @@ public class CommandParser {
                 toDelete.getName(), isDeck, decisionToDelete);
     }
 
-    private static void parseEditCommand() {
+    private static void parseEditDescriptionCommand() {
         CLIOutput.writeDescriptionPrompt();
         String description = CLIInput.readInput();
         parseDeckCommand(Deck::setDescription, description);
@@ -242,14 +273,13 @@ public class CommandParser {
     }
 
     private static void parseAddCommand(String remaining) {
-
         if (remaining.startsWith(TAG)) {
             String arg = getRemaining(remaining, TAG);
             parseDeckCommand(Deck::addTag, arg);
         } else if (remaining.startsWith(FLASH_CARD)) {
-            CLIOutput.writeNewFlashCardCluePrompt();
+            CLIOutput.writeNewFlashCardCluePrompt(false);
             String clue = CLIInput.readInput();
-            CLIOutput.writeNewFlashCardAnswerPrompt();
+            CLIOutput.writeNewFlashCardAnswerPrompt(false);
             String answer = CLIInput.readInput();
 
             FlashCard flashCard = FlashCard.createNew(clue, answer);
@@ -387,6 +417,7 @@ public class CommandParser {
                 CMD_CLEAR,
                 CMD_DELETE,
                 CMD_EDIT,
+                CMD_EDIT + ARG_SEPARATOR + FLASH_CARD + ARG_SEPARATOR + ID_CODE,
                 CMD_GOTO + ARG_SEPARATOR + PARENT_DIR,
                 CMD_HELP,
                 CMD_IMPORT + ARG_SEPARATOR + FILEPATH,
@@ -410,6 +441,8 @@ public class CommandParser {
                 "Clears all of the flash cards from the deck, including their memorization data", // clear
                 "Deletes the deck - THIS CANNOT BE UNDONE", // delete
                 "Prompts the user for a new description for the deck", // edit
+                "Edits the contents of the flash card with ID code " + ID_CODE +
+                        " from the deck", // edit flashcard [id_code]
                 "Changes the context to the deck's parent directory", // goto ..
                 "Displays the valid commands at this context scope", // help
                 "Imports flash cards from a CSV file or plain text file " + FILEPATH, // import [filepath]
