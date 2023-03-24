@@ -652,6 +652,10 @@ public class CLIOutput {
         writeFlashCardAction("Added", flashCard, true);
     }
 
+    public static void writeUpdatedFlashCard(final FlashCard flashCard) {
+        writeFlashCardAction("Updated", flashCard, true);
+    }
+
     public static void writeImportedFlashCard(final FlashCard flashCard) {
         writeFlashCardAction("Imported", flashCard, false);
     }

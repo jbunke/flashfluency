@@ -192,6 +192,8 @@ public class CommandParser {
 
                     flashCard.setClue(clue);
                     flashCard.setAnswer(answer);
+
+                    CLIOutput.writeUpdatedFlashCard(flashCard);
                 } else
                     CLIOutput.writeDidNotEditFlashCardNotification();
             } else
