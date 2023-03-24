@@ -157,9 +157,12 @@ public class DeckFileParser {
         if (sb.length() > 0)
             sb.deleteCharAt(sb.length() - 1);
 
-        List<String> fcs = new ArrayList<>();
+        List<String> flashCardDataStrings = new ArrayList<>();
 
-        flashCards.keySet().forEach(x -> {
+        List<String> fs = new ArrayList<>(flashCards.keySet());
+        fs.sort(Comparator.naturalOrder());
+
+        fs.forEach(x -> {
             FlashCard f = flashCards.get(x);
             String fc = f.getClue() + FIELD_SEPARATOR + f.getAnswer() +
                     FIELD_SEPARATOR + f.isIntroduced() + FIELD_SEPARATOR +
@@ -167,14 +170,14 @@ public class DeckFileParser {
                     f.getPot() + FIELD_SEPARATOR + f.getPotCounter() +
                     FIELD_SEPARATOR + f.getCorrectInTests() + RECORD_SEPARATOR +
                     f.getAttemptedInTests() + FIELD_SEPARATOR + f.getCode();
-            fcs.add(fc);
+            flashCardDataStrings.add(fc);
         });
 
         bw.write(KEYWORD_DESCRIPTION + Settings.SETTING_SEPARATOR + description + Settings.NEW_LINE);
         bw.write(KEYWORD_TAGS + Settings.SETTING_SEPARATOR + sb + Settings.NEW_LINE);
         bw.write(KEYWORD_FLASH_CARDS + Settings.SETTING_SEPARATOR + Settings.NEW_LINE);
 
-        for (String fc : fcs) {
+        for (String fc : flashCardDataStrings) {
             bw.write(fc + Settings.NEW_LINE);
         }
 

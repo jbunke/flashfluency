@@ -412,9 +412,7 @@ public class CommandParser {
                 "Prompts the user for a new description for the deck", // edit
                 "Changes the context to the deck's parent directory", // goto ..
                 "Displays the valid commands at this context scope", // help
-                "Imports flash cards from a CSV file " + FILEPATH +
-                        " ; only lines with a single comma delimiter " +
-                        "separating clue and value are valid and imported", // import [filepath]
+                "Imports flash cards from a CSV file or plain text file " + FILEPATH, // import [filepath]
                 "Runs a spaced repetition lesson in the current deck" +
                         " and updates the memorization status of tested flash cards", // learn
                 "Moves the current deck to the destination specified by the path " +

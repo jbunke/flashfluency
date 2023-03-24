@@ -219,6 +219,9 @@ public class Deck {
     }
 
     public void importCards(String filepath) {
+        final String CSV_EXTENSION = ".csv", COMMA_SEPARATOR = ",", STANDARD_SEPARATOR = "->";
+        final boolean isCSV = filepath.toLowerCase().endsWith(CSV_EXTENSION);
+
         filepath = filepath.replace("/", File.separator).replace("\\", File.separator);
 
         try {
@@ -226,7 +229,7 @@ public class Deck {
 
             for (String line : br.lines().toList()) {
                 final int CLUE = 0, ANSWER = 1, TOTAL = 2;
-                final String SEPARATOR = ",";
+                final String SEPARATOR = isCSV ? COMMA_SEPARATOR : STANDARD_SEPARATOR;
 
                 String[] fields = line.split(SEPARATOR);
 
